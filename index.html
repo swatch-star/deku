@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>デク v0.1</title>
+<style>
+:root{--g:#147d4b;--bg:#f4f7f5;--card:#fff;--txt:#17201b;--mut:#728078}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;background:var(--bg);color:var(--txt)}
+.app{max-width:520px;margin:auto;min-height:100vh;padding:18px 16px 90px}.top{display:flex;justify-content:space-between;align-items:center}
+.logo{font-size:28px;font-weight:900;color:var(--g)}.pill{background:#e3f1e9;color:var(--g);padding:7px 11px;border-radius:99px;font-size:12px;font-weight:700}
+h1{font-size:23px;margin:22px 0 4px}.sub{color:var(--mut);font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:16px 0}.kpi,.card{background:var(--card);border-radius:18px;padding:15px;box-shadow:0 4px 18px #173b2420}
+.kpi b{display:block;font-size:21px}.kpi span{font-size:11px;color:var(--mut)}
+.section{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 10px}.section b{font-size:17px}
+.item{background:white;border-radius:18px;padding:14px;margin:9px 0;display:flex;gap:12px;align-items:center}.time{font-size:12px;color:var(--mut);width:74px}.grow{flex:1}.title{font-weight:800}.meta{font-size:12px;color:var(--mut);margin-top:3px}
+button{border:0;border-radius:12px;padding:9px 11px;font-weight:800;cursor:pointer}.small{background:#e8f4ed;color:var(--g)}
+.add{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);width:min(488px,calc(100% - 32px));background:var(--g);color:white;padding:15px;border-radius:16px;font-size:15px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e8ece9;display:flex;justify-content:center}.navin{width:min(520px,100%);display:grid;grid-template-columns:repeat(4,1fr)}
+nav button{background:white;color:#849087;padding:13px 3px;border-radius:0;font-size:11px}.active{color:var(--g)!important}
+.page{display:none}.page.on{display:block}
+textarea,input,select{width:100%;border:1px solid #dce5df;border-radius:12px;padding:11px;margin:5px 0 11px;font:inherit;background:white}
+label{font-size:12px;font-weight:700;color:#526057}.save{width:100%;background:var(--g);color:white;padding:13px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bar{height:10px;background:#e5ebe7;border-radius:9px;overflow:hidden;margin:7px 0 14px}.bar i{display:block;height:100%;background:var(--g)}
+.note{line-height:1.65;font-size:14px}.hide{display:none}
+</style></head>
+<body><div class="app">
+<div class="top"><div class="logo">デク</div><div class="pill">v0.1 Prototype</div></div>
+
+<section id="today" class="page on">
+<h1>今日の行動</h1><div class="sub" id="date"></div>
+<div class="kpis"><div class="kpi"><b id="calls">0</b><span>架電 / 100</span></div><div class="kpi"><b id="appts">0</b><span>アポ / 5</span></div><div class="kpi"><b id="meetings">2</b><span>商談 / 3</span></div></div>
+<div class="section"><b>今日のスケジュール</b><span class="sub">Calendar</span></div>
+<div id="schedule">
+<div class="item"><div class="time">09:00–11:00</div><div class="grow"><div class="title">📞 架電</div><div class="meta">午前の集中枠</div></div><button class="small" onclick="openLog('架電')">実績</button></div>
+<div class="item"><div class="time">13:00–14:00</div><div class="grow"><div class="title">🤝 A社 商談</div><div class="meta">提案・次回アクション確認</div></div><button class="small" onclick="openLog('商談')">実績</button></div>
+<div class="item"><div class="time">15:00–17:00</div><div class="grow"><div class="title">📞 架電</div><div class="meta">午後の集中枠</div></div><button class="small" onclick="openLog('架電')">実績</button></div>
+</div>
+<button class="add" onclick="openLog('架電')">＋ 行動を記録</button>
+</section>
+
+<section id="log" class="page"><h1>実績入力</h1><div class="sub">終わったら数字だけ。30秒で記録。</div>
+<div class="card" style="margin-top:16px">
+<label>行動カテゴリー</label><select id="cat" onchange="toggleFields()"><option>架電</option><option>商談</option><option>交流会</option><option>移動</option><option>その他</option></select>
+<div id="callfields"><div class="row"><div><label>架電数</label><input id="c" type="number" value="0"></div><div><label>接続数</label><input id="connect" type="number" value="0"></div></div><label>アポ数</label><input id="a" type="number" value="0"></div>
+<div id="meetingfields" class="hide"><label>商談結果</label><select id="result"><option>次回提案</option><option>検討</option><option>受注</option><option>見送り</option></select><label>次回アクション</label><input id="next" placeholder="例：10/5に提案書送付"></div>
+<label>メモ</label><textarea id="memo" rows="3" placeholder="気づき・相手の反応など"></textarea>
+<button class="save" onclick="saveLog()">実績を保存</button></div></section>
+
+<section id="report" class="page"><h1>AI日報</h1><div class="sub">入力した実績から自動要約</div>
+<div class="card note" style="margin-top:16px" id="reportText"><b>本日のサマリー</b><br><br>まだ実績がありません。行動を記録すると、ここに日報が生成されます。</div>
+<button class="save" style="margin-top:12px" onclick="makeReport()">日報を更新</button></section>
+
+<section id="week" class="page"><h1>週次分析</h1><div class="sub">時間 → 行動 → 成果を見る</div>
+<div class="card" style="margin-top:16px"><b>架電進捗</b><div class="bar"><i id="callbar" style="width:0%"></i></div><b>アポ進捗</b><div class="bar"><i id="apptbar" style="width:0%"></i></div><div class="row"><div class="kpi"><b id="wcalls">0</b><span>累計架電</span></div><div class="kpi"><b id="wappts">0</b><span>累計アポ</span></div></div></div></section>
+</div>
+<nav><div class="navin"><button class="active" onclick="show('today',this)">今日</button><button onclick="show('log',this)">実績入力</button><button onclick="show('report',this)">AI日報</button><button onclick="show('week',this)">週次</button></div></nav>
+<script>
+let data=JSON.parse(localStorage.getItem('dekuLogs')||'[]');
+document.getElementById('date').textContent=new Intl.DateTimeFormat('ja-JP',{dateStyle:'full'}).format(new Date());
+function show(id,b){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));document.getElementById(id).classList.add('on');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');refresh()}
+function openLog(cat){show('log',document.querySelectorAll('nav button')[1]);document.getElementById('cat').value=cat;toggleFields()}
+function toggleFields(){let m=document.getElementById('cat').value==='商談';document.getElementById('callfields').classList.toggle('hide',m);document.getElementById('meetingfields').classList.toggle('hide',!m)}
+function saveLog(){let cat=document.getElementById('cat').value;data.push({cat,c:+document.getElementById('c').value||0,a:+document.getElementById('a').value||0,connect:+document.getElementById('connect').value||0,result:document.getElementById('result').value,next:document.getElementById('next').value,memo:document.getElementById('memo').value,t:Date.now()});localStorage.setItem('dekuLogs',JSON.stringify(data));makeReport();show('today',document.querySelectorAll('nav button')[0])}
+function refresh(){let calls=data.reduce((s,x)=>s+x.c,0), appts=data.reduce((s,x)=>s+x.a,0), meets=data.filter(x=>x.cat==='商談').length;callsEl('calls',calls);callsEl('appts',appts);callsEl('meetings',meets);callsEl('wcalls',calls);callsEl('wappts',appts);document.getElementById('callbar').style.width=Math.min(calls/5,100)+'%';document.getElementById('apptbar').style.width=Math.min(appts*20,100)+'%'}
+function callsEl(id,v){document.getElementById(id).textContent=v}
+function makeReport(){let calls=data.reduce((s,x)=>s+x.c,0),appts=data.reduce((s,x)=>s+x.a,0),conn=data.reduce((s,x)=>s+x.connect,0),meets=data.filter(x=>x.cat==='商談').length,rate=calls?((appts/calls)*100).toFixed(1):0;document.getElementById('reportText').innerHTML=`<b>本日のサマリー</b><br><br>架電：${calls}件 ／ 接続：${conn}件 ／ アポ：${appts}件<br>商談：${meets}件 ／ アポ率：${rate}%<br><br><b>次の確認</b><br>${data.length?'今日の実績が記録されています。未完了の次回アクションを確認して、明日の予定に反映しましょう。':'まだ実績がありません。'}`;refresh()}
+refresh();makeReport();toggleFields();
+</script></body></html>
