@@ -22,6 +22,9 @@ textarea,input,select{width:100%;border:1px solid #dce5df;border-radius:12px;pad
 label{font-size:12px;font-weight:700;color:#526057}.save{width:100%;background:var(--g);color:white;padding:13px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bar{height:10px;background:#e5ebe7;border-radius:9px;overflow:hidden;margin:7px 0 14px}.bar i{display:block;height:100%;background:var(--g)}
 .note{line-height:1.65;font-size:14px}.hide{display:none}
+
+.googlebox{margin:14px 0}.gbtn{width:100%;border:0;border-radius:14px;padding:13px;font-weight:800;background:#fff;box-shadow:0 4px 18px #173b2420;color:var(--g)}
+.gstatus{font-size:12px;color:var(--mut);margin:8px 2px}.event{background:#fff;border-radius:14px;padding:12px 14px;margin:8px 0;box-shadow:0 3px 12px #173b2415}.event b{display:block}.event small{color:var(--mut)}
 </style></head>
 <body><div class="app">
 <div class="top"><div class="logo">デク</div><div class="pill">v0.1 Prototype</div></div>
@@ -38,6 +41,11 @@ label{font-size:12px;font-weight:700;color:#526057}.save{width:100%;background:v
 <button class="add" onclick="openLog('架電')">＋ 行動を記録</button>
 </section>
 
+<div class="googlebox">
+<button class="gbtn" id="googleBtn" onclick="connectGoogle()">Googleカレンダーを接続</button>
+<div class="gstatus" id="googleStatus">未接続</div>
+<div id="calendarEvents"></div>
+</div>
 <section id="log" class="page"><h1>実績入力</h1><div class="sub">終わったら数字だけ。30秒で記録。</div>
 <div class="card" style="margin-top:16px">
 <label>行動カテゴリー</label><select id="cat" onchange="toggleFields()"><option>架電</option><option>商談</option><option>交流会</option><option>移動</option><option>その他</option></select>
@@ -54,7 +62,10 @@ label{font-size:12px;font-weight:700;color:#526057}.save{width:100%;background:v
 <div class="card" style="margin-top:16px"><b>架電進捗</b><div class="bar"><i id="callbar" style="width:0%"></i></div><b>アポ進捗</b><div class="bar"><i id="apptbar" style="width:0%"></i></div><div class="row"><div class="kpi"><b id="wcalls">0</b><span>累計架電</span></div><div class="kpi"><b id="wappts">0</b><span>累計アポ</span></div></div></div></section>
 </div>
 <nav><div class="navin"><button class="active" onclick="show('today',this)">今日</button><button onclick="show('log',this)">実績入力</button><button onclick="show('report',this)">AI日報</button><button onclick="show('week',this)">週次</button></div></nav>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
+let tokenClient;
+const GOOGLE_CLIENT_ID="207350844424-eoimuqkn8ens2j8pti5nlflg95mqj5fo.apps.googleusercontent.com";
 let data=JSON.parse(localStorage.getItem('dekuLogs')||'[]');
 document.getElementById('date').textContent=new Intl.DateTimeFormat('ja-JP',{dateStyle:'full'}).format(new Date());
 function show(id,b){document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));document.getElementById(id).classList.add('on');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(b)b.classList.add('active');refresh()}
@@ -64,5 +75,45 @@ function saveLog(){let cat=document.getElementById('cat').value;data.push({cat,c
 function refresh(){let calls=data.reduce((s,x)=>s+x.c,0), appts=data.reduce((s,x)=>s+x.a,0), meets=data.filter(x=>x.cat==='商談').length;callsEl('calls',calls);callsEl('appts',appts);callsEl('meetings',meets);callsEl('wcalls',calls);callsEl('wappts',appts);document.getElementById('callbar').style.width=Math.min(calls/5,100)+'%';document.getElementById('apptbar').style.width=Math.min(appts*20,100)+'%'}
 function callsEl(id,v){document.getElementById(id).textContent=v}
 function makeReport(){let calls=data.reduce((s,x)=>s+x.c,0),appts=data.reduce((s,x)=>s+x.a,0),conn=data.reduce((s,x)=>s+x.connect,0),meets=data.filter(x=>x.cat==='商談').length,rate=calls?((appts/calls)*100).toFixed(1):0;document.getElementById('reportText').innerHTML=`<b>本日のサマリー</b><br><br>架電：${calls}件 ／ 接続：${conn}件 ／ アポ：${appts}件<br>商談：${meets}件 ／ アポ率：${rate}%<br><br><b>次の確認</b><br>${data.length?'今日の実績が記録されています。未完了の次回アクションを確認して、明日の予定に反映しましょう。':'まだ実績がありません。'}`;refresh()}
+
+function initGoogle(){
+  if(!window.google || !google.accounts || !google.accounts.oauth2){setTimeout(initGoogle,300);return}
+  tokenClient=google.accounts.oauth2.initTokenClient({
+    client_id:GOOGLE_CLIENT_ID,
+    scope:'https://www.googleapis.com/auth/calendar.readonly',
+    callback:async r=>{
+      if(r.error){document.getElementById('googleStatus').textContent='接続エラー: '+r.error;return}
+      sessionStorage.setItem('dekuGoogleToken',r.access_token);
+      document.getElementById('googleBtn').textContent='Googleカレンダーを再接続';
+      await loadTodayCalendar(r.access_token);
+    }
+  });
+}
+function connectGoogle(){
+  if(!tokenClient){document.getElementById('googleStatus').textContent='Google認証を準備中…';initGoogle();return}
+  tokenClient.requestAccessToken({prompt:'consent'});
+}
+async function loadTodayCalendar(token){
+  const st=document.getElementById('googleStatus'), box=document.getElementById('calendarEvents');
+  st.textContent='今日の予定を取得中…';
+  try{
+    const now=new Date(), start=new Date(now), end=new Date(now);
+    start.setHours(0,0,0,0); end.setHours(23,59,59,999);
+    const url='https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime&timeMin='+encodeURIComponent(start.toISOString())+'&timeMax='+encodeURIComponent(end.toISOString());
+    const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const j=await res.json(), items=j.items||[];
+    st.textContent=items.length?`Googleカレンダー接続済み・今日 ${items.length}件`:'Googleカレンダー接続済み・今日の予定はありません';
+    box.innerHTML=items.map(e=>{
+      const sd=e.start.dateTime?new Date(e.start.dateTime):null;
+      const ed=e.end.dateTime?new Date(e.end.dateTime):null;
+      const tm=sd?(sd.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})+'〜'+(ed?ed.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'')):'終日';
+      return `<div class="event"><b>${escapeHtml(e.summary||'（予定）')}</b><small>${tm}</small></div>`
+    }).join('');
+  }catch(e){st.textContent='予定を取得できませんでした。再接続してください。';box.innerHTML=''}
+}
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+window.addEventListener('load',initGoogle);
+
 refresh();makeReport();toggleFields();
 </script></body></html>
