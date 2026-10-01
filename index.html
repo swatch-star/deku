@@ -25,7 +25,31 @@ label{font-size:12px;font-weight:700;color:#526057}.save{width:100%;background:v
 
 .googlebox{margin:14px 0}.gbtn{width:100%;border:0;border-radius:14px;padding:13px;font-weight:800;background:#fff;box-shadow:0 4px 18px #173b2420;color:var(--g)}
 .gstatus{font-size:12px;color:var(--mut);margin:8px 2px}.event{background:#fff;border-radius:14px;padding:12px 14px;margin:8px 0;box-shadow:0 3px 12px #173b2415}.event b{display:block}.event small{color:var(--mut)}
-</style></head>
+.event.past{
+  opacity:.45;
+}
+
+.event.current{
+  border:2px solid var(--g);
+  box-shadow:0 0 0 4px #147d4b15;
+}
+
+.now-label{
+  display:inline-block;
+  margin-left:8px;
+  padding:3px 7px;
+  border-radius:999px;
+  background:#e3f1e9;
+  color:var(--g);
+  font-size:11px;
+  font-weight:800;
+}
+
+.event-time{
+  margin-top:4px;
+  font-size:13px;
+  color:var(--mut);
+}</style></head>
 <body><div class="app">
 <div class="top"><div class="logo">デク</div><div class="pill">v0.1 Prototype</div></div>
 
@@ -99,11 +123,31 @@ async function loadTodayCalendar(token){
     const j=await res.json(), items=j.items||[];
     st.textContent=items.length?`Googleカレンダー接続済み・今日 ${items.length}件`:'Googleカレンダー接続済み・今日の予定はありません';
     box.innerHTML=items.map(e=>{
-      const sd=e.start.dateTime?new Date(e.start.dateTime):null;
-      const ed=e.end.dateTime?new Date(e.end.dateTime):null;
-      const tm=sd?(sd.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})+'〜'+(ed?ed.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'')):'終日';
-      return `<div class="event"><b>${escapeHtml(e.summary||'（予定）')}</b><small>${tm}</small></div>`
-    }).join('');
+  const sd=e.start.dateTime?new Date(e.start.dateTime):null;
+  const ed=e.end.dateTime?new Date(e.end.dateTime):null;
+  const now=new Date();
+
+  const tm=sd
+    ? sd.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})+
+      '〜'+
+      (ed?ed.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):'')
+    : '終日';
+
+  let status='';
+  let label='';
+
+  if(sd && ed && now>=sd && now<=ed){
+    status=' current';
+    label='<span class="now-label">進行中</span>';
+  }else if(ed && now>ed){
+    status=' past';
+  }
+
+  return `<div class="event${status}">
+    <div class="event-title">${escapeHtml(e.summary||'（予定）')}${label}</div>
+    <div class="event-time">${tm}</div>
+  </div>`;
+}).join('');
   }catch(e){st.textContent='予定を取得できませんでした。再接続してください。';box.innerHTML=''}
 }
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
