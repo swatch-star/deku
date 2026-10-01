@@ -75,7 +75,7 @@ label{font-size:12px;font-weight:700;color:#526057}.save{width:100%;background:v
 <section id="report" class="page"><h1>AI日報</h1><div class="sub">入力した実績から自動要約</div>
 <div class="card note" style="margin-top:16px" id="reportText"><b>本日のサマリー</b><br><br>まだ実績がありません。行動を記録すると、ここに日報が生成されます。</div>
 <button class="save" style="margin-top:12px" onclick="makeReport()">日報を更新</button></section>
-
+<div id="logHistory" class="card" style="margin-top:12px"></div>
 <section id="week" class="page"><h1>週次分析</h1><div class="sub">時間 → 行動 → 成果を見る</div>
 <div class="card" style="margin-top:16px"><b>架電進捗</b><div class="bar"><i id="callbar" style="width:0%"></i></div><b>アポ進捗</b><div class="bar"><i id="apptbar" style="width:0%"></i></div><div class="row"><div class="kpi"><b id="wcalls">0</b><span>累計架電</span></div><div class="kpi"><b id="wappts">0</b><span>累計アポ</span></div></div></div></section>
 </div>
@@ -90,8 +90,38 @@ function show(id,b){document.querySelectorAll('.page').forEach(x=>x.classList.re
 function openLog(cat){show('log',document.querySelectorAll('nav button')[1]);document.getElementById('cat').value=cat;toggleFields()}
 function toggleFields(){let m=document.getElementById('cat').value==='商談';document.getElementById('callfields').classList.toggle('hide',m);document.getElementById('meetingfields').classList.toggle('hide',!m)}
 function saveLog(){let cat=document.getElementById('cat').value;data.push({cat,c:+document.getElementById('c').value||0,a:+document.getElementById('a').value||0,connect:+document.getElementById('connect').value||0,result:document.getElementById('result').value,next:document.getElementById('next').value,memo:document.getElementById('memo').value,t:Date.now()});localStorage.setItem('dekuLogs',JSON.stringify(data));makeReport();show('today',document.querySelectorAll('nav button')[0])}
-function refresh(){let calls=data.reduce((s,x)=>s+x.c,0), appts=data.reduce((s,x)=>s+x.a,0), meets=data.filter(x=>x.cat==='商談').length;callsEl('calls',calls);callsEl('appts',appts);callsEl('meetings',meets);callsEl('wcalls',calls);callsEl('wappts',appts);document.getElementById('callbar').style.width=Math.min(calls/5,100)+'%';document.getElementById('apptbar').style.width=Math.min(appts*20,100)+'%'}
-function callsEl(id,v){document.getElementById(id).textContent=v}
+function refresh(){let calls=data.reduce((s,x)=>s+x.c,0), appts=data.reduce((s,x)=>s+x.a,0), meets=data.filter(x=>x.cat==='商談').length;callsEl('calls',calls);callsEl('appts',appts);callsEl('meetings',meets);callsEl('wcalls',calls);callsEl('wappts',appts);document.getElementById('callbar').style.width=Math.min(calls/5,100)+'%';document.getElementById('apptbar').style.width=Math.min(appts*20,100)+'%'}renderHistory();
+function renderHistory(){
+  const el=document.getElementById('logHistory');
+  if(!el)return;
+
+  if(!data.length){
+    el.innerHTML='<b>行動履歴</b><br><br>まだ記録がありません。';
+    return;
+  }
+
+  el.innerHTML='<b>行動履歴</b><br><br>'+
+    [...data].reverse().map(x=>{
+      const d=new Date(x.t).toLocaleString('ja-JP');
+      return `
+        <div style="padding:10px 0;border-bottom:1px solid #eee">
+          <b>${x.cat}</b>　${d}<br>
+          架電:${x.c||0}件 ／ 接続:${x.connect||0}件 ／ アポ:${x.a||0}件
+          <br>
+          <button onclick="deleteLog(${x.t})" style="margin-top:6px">取消</button>
+        </div>
+      `;
+    }).join('');
+}
+  function deleteLog(t){
+  if(!confirm('この行動記録を取り消しますか？')) return;
+
+  data=data.filter(x=>x.t!==t);
+  localStorage.setItem('dekuLogs',JSON.stringify(data));
+
+  makeReport();
+}
+  function callsEl(id,v){document.getElementById(id).textContent=v}
 function makeReport(){let calls=data.reduce((s,x)=>s+x.c,0),appts=data.reduce((s,x)=>s+x.a,0),conn=data.reduce((s,x)=>s+x.connect,0),meets=data.filter(x=>x.cat==='商談').length,rate=calls?((appts/calls)*100).toFixed(1):0;document.getElementById('reportText').innerHTML=`<b>本日のサマリー</b><br><br>架電：${calls}件 ／ 接続：${conn}件 ／ アポ：${appts}件<br>商談：${meets}件 ／ アポ率：${rate}%<br><br><b>次の確認</b><br>${data.length?'今日の実績が記録されています。未完了の次回アクションを確認して、明日の予定に反映しましょう。':'まだ実績がありません。'}`;refresh()}
 
 function initGoogle(){
