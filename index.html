@@ -94,7 +94,7 @@ nav button{background:#0b211d;color:#86b7ab;padding:12px 2px;border-radius:0;fon
 nav button:last-child{border-right:0}
 .active{color:#04110e!important;background:#26d8b7!important}
 .page{display:none}.page.on{display:block}
-textarea,input,select{width:100%;border:2px solid var(--ink);border-radius:14px;padding:11px;margin:5px 0 11px;font:inherit;background:#102f29}
+textarea,input,select{width:100%;border:2px solid var(--ink);border-radius:14px;padding:11px;margin:5px 0 11px;font:inherit;background:#102f29;color:#fff} select option{background:#102f29;color:#fff} input::placeholder,textarea::placeholder{color:#9fc7bf}
 label{font-size:12px;font-weight:900;color:#d9fff7}
 .save{width:100%;background:linear-gradient(90deg,#0f9e84,#25d9b7);color:white;padding:13px}
 .secondary{width:100%;background:#21473d;color:#eafff8;padding:12px}
@@ -129,7 +129,7 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
       <div class="logo">デク</div>
       <div class="plus-ultra">PLUS ULTRA</div>
     </div>
-    <div class="pill">v0.4</div>
+    <div class="pill">v0.5</div>
   </div>
 
   <div class="hero-banner">
@@ -137,7 +137,9 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
       <div class="hero-kicker">HERO MODE DASHBOARD</div>
       <div class="hero-title">PLUS ULTRAで、
       <br>今日の行動を突き抜ける。</div>
-      <div class="hero-copy">深いエメラルドとターコイズの発光感を軸にした、エネルギッシュなDEKUデザイン。日々の行動、日報、目標進捗を一気に見渡せる仕様にしています。</div>
+      <div class="annual-goal-label">ANNUAL GOAL</div>
+      <div class="annual-goal-text" id="annualGoalDisplay">年間目標を設定しよう。</div>
+      <div class="hero-copy" id="annualGoalWhy">目標タブから、今年実現したいことを言葉で設定できます。</div>
     </div>
   </div>
 
@@ -210,9 +212,18 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
   </section>
 
   <section id="goals" class="page">
-    <h1>目標設定</h1><div class="sub">月間 → 週間 → 今日の行動へ落とし込む</div>
+    <h1>目標設定</h1><div class="sub">年間 → 月間 → 週間 → 今日の行動へ落とし込む</div>
 
     <div class="card" style="margin-top:16px">
+      <h2>年間目標</h2>
+      <label>今年、絶対に実現すること</label>
+      <textarea id="annualGoal" rows="3" placeholder="例：年収1,000万円を達成し、アスリート事業を確立する"></textarea>
+      <label>その目標を達成する理由</label>
+      <textarea id="annualWhy" rows="2" placeholder="例：挑戦する人を増やし、自分自身も次のステージへ進むため"></textarea>
+      <button class="save" onclick="saveAnnualGoal()">年間目標を保存</button>
+    </div>
+
+    <div class="card" style="margin-top:12px">
       <h2>月間目標</h2>
       <label>対象月</label><input id="goalMonth" type="month" onchange="loadGoalForm()">
       <div class="row">
@@ -284,6 +295,7 @@ let goals=JSON.parse(localStorage.getItem('dekuGoals')||'{"months":{},"weeks":{}
 if(!goals.months) goals.months={};
 if(!goals.weeks) goals.weeks={};
 if(!goals.days) goals.days={};
+if(!goals.annual) goals.annual={text:'',why:''};
 
 const pad=n=>String(n).padStart(2,'0');
 function dateKey(d=new Date()){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
@@ -370,6 +382,10 @@ function progressLine(label,actual,target,suffix='件'){
 }
 
 function refresh(){
+  const ag=goals.annual||{};
+  const agd=document.getElementById('annualGoalDisplay'), agw=document.getElementById('annualGoalWhy');
+  if(agd) agd.textContent=ag.text||'年間目標を設定しよう。';
+  if(agw) agw.textContent=ag.why||'目標タブから、今年実現したいことを言葉で設定できます。';
   const dk=dateKey(), mk=monthKey(), wk=weekKey();
   const ds=stats(logsForDay(dk)), ms=stats(logsForMonth(mk)), ws=stats(logsForWeek(wk));
   const dg=goals.days[dk]||{}, mg=goals.months[mk]||{}, wg=goals.weeks[wk]||{};
@@ -461,6 +477,8 @@ function openPastReport(k){
 }
 
 function loadGoalForm(){
+  document.getElementById('annualGoal').value=goals.annual?.text||'';
+  document.getElementById('annualWhy').value=goals.annual?.why||'';
   const mk=document.getElementById('goalMonth').value||monthKey();
   const mg=goals.months[mk]||{};
   document.getElementById('monthSalesTarget').value=mg.salesTarget||'';
@@ -479,6 +497,10 @@ function loadGoalForm(){
   document.getElementById('dayCallsTarget').value=dg.calls||'';
   document.getElementById('dayApptsTarget').value=dg.appts||'';
   document.getElementById('dayMeetingsTarget').value=dg.meetings||'';
+}
+function saveAnnualGoal(){
+  goals.annual={text:document.getElementById('annualGoal').value.trim(),why:document.getElementById('annualWhy').value.trim()};
+  localStorage.setItem('dekuGoals',JSON.stringify(goals));refresh();alert('年間目標を保存しました');
 }
 function saveMonthGoals(){
   const mk=document.getElementById('goalMonth').value||monthKey();
@@ -528,6 +550,22 @@ function renderProgress(ms,ws,ds,mg,wg,dg){
     progressLine('架電',ds.calls,+dg.calls||0)+
     progressLine('アポ',ds.appts,+dg.appts||0)+
     progressLine('商談',ds.meetings,+dg.meetings||0);
+}
+
+function exportBackup(){
+  const payload={version:'0.5',exportedAt:new Date().toISOString(),logs:data,reports,goals};
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`deku-backup-${dateKey()}.json`;a.click();URL.revokeObjectURL(a.href);
+}
+function importBackup(ev){
+  const file=ev.target.files&&ev.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=()=>{try{
+    const b=JSON.parse(reader.result); if(!b.logs||!b.reports||!b.goals)throw new Error('形式');
+    if(!confirm('現在のDEKUデータを、このバックアップ内容で置き換えますか？'))return;
+    data=b.logs;reports=b.reports;goals=b.goals;if(!goals.annual)goals.annual={text:'',why:''};saveAll();loadGoalForm();loadReportForm();refresh();alert('バックアップを復元しました');
+  }catch(e){alert('バックアップファイルを読み込めませんでした');}};
+  reader.readAsText(file);
 }
 
 function initGoogle(){
