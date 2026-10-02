@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>デク PLUS ULTRA v0.4</title>
+<title>デク PLUS ULTRA v0.6</title>
 <style>
 :root{
   --g:#14b89a;
@@ -119,6 +119,9 @@ label{font-size:12px;font-weight:900;color:#d9fff7}
 .badge{display:inline-block;background:#173f36;color:#c7fff3;border-radius:999px;padding:4px 8px;font-size:11px;font-weight:900;border:2px solid var(--ink)}
 .report-history button{margin-top:8px}
 hr{border:0;border-top:2px solid var(--line);margin:14px 0}
+.sync-status{font-size:12px;font-weight:800;margin-top:10px;color:var(--mut)}
+.sync-status.ok{color:#72f2da}
+.sync-status.err{color:#ff9d8e}
 @media (max-width:480px){.hero-title{font-size:24px}.logo{font-size:26px}}
 </style>
 </head>
@@ -129,7 +132,7 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
       <div class="logo">デク</div>
       <div class="plus-ultra">PLUS ULTRA</div>
     </div>
-    <div class="pill">v0.5</div>
+    <div class="pill">v0.6</div>
   </div>
 
   <div class="hero-banner">
@@ -187,6 +190,7 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
       </div>
       <label>メモ</label><textarea id="memo" rows="3" placeholder="気づき・相手の反応など"></textarea>
       <button class="save" onclick="saveLog()">実績を保存</button>
+      <div class="sync-status" id="sheetSyncStatus">Googleスプレッドシート連携：準備完了</div>
     </div>
   </section>
 
@@ -288,6 +292,7 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
 <script>
 let tokenClient;
 const GOOGLE_CLIENT_ID="207350844424-eoimuqkn8ens2j8pti5nlflg95mqj5fo.apps.googleusercontent.com";
+const DEKU_SHEET_API="https://script.google.com/macros/s/AKfycbx2KSCfhoB05Hyp-gZHctDbRllt7v1p2O4uwmtmFtXVfdBeCpHrpus5_wGkW2jeeyak/exec";
 
 let data=JSON.parse(localStorage.getItem('dekuLogs')||'[]');
 let reports=JSON.parse(localStorage.getItem('dekuReports')||'{}');
@@ -338,9 +343,9 @@ function toggleFields(){
   document.getElementById('callfields').classList.toggle('hide',m);
   document.getElementById('meetingfields').classList.toggle('hide',!m);
 }
-function saveLog(){
+async function saveLog(){
   const cat=document.getElementById('cat').value;
-  data.push({
+  const log={
     cat,
     c:+document.getElementById('c').value||0,
     a:+document.getElementById('a').value||0,
@@ -349,8 +354,38 @@ function saveLog(){
     next:document.getElementById('next').value,
     memo:document.getElementById('memo').value,
     t:Date.now()
-  });
+  };
+
+  // 端末内にも保存。通信できない時でも入力内容を失わない。
+  data.push(log);
   localStorage.setItem('dekuLogs',JSON.stringify(data));
+
+  const syncEl=document.getElementById('sheetSyncStatus');
+  if(syncEl){
+    syncEl.textContent='Googleスプレッドシートへ送信中…';
+    syncEl.className='sync-status';
+  }
+
+  // Apps Scriptへ自動送信。
+  // text/plain にすることでGitHub Pagesからの不要なCORS preflightを避ける。
+  try{
+    await fetch(DEKU_SHEET_API,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(log)
+    });
+    if(syncEl){
+      syncEl.textContent='Googleスプレッドシートへ送信しました';
+      syncEl.className='sync-status ok';
+    }
+  }catch(e){
+    if(syncEl){
+      syncEl.textContent='端末には保存済み。スプレッドシート送信に失敗しました';
+      syncEl.className='sync-status err';
+    }
+  }
+
   document.getElementById('c').value=0;
   document.getElementById('connect').value=0;
   document.getElementById('a').value=0;
@@ -553,7 +588,7 @@ function renderProgress(ms,ws,ds,mg,wg,dg){
 }
 
 function exportBackup(){
-  const payload={version:'0.5',exportedAt:new Date().toISOString(),logs:data,reports,goals};
+  const payload={version:'0.6',exportedAt:new Date().toISOString(),logs:data,reports,goals};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`deku-backup-${dateKey()}.json`;a.click();URL.revokeObjectURL(a.href);
 }
