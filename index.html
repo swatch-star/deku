@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>デク PLUS ULTRA v0.6</title>
+<title>デク PLUS ULTRA v0.7</title>
 <style>
 :root{
   --g:#14b89a;
@@ -132,7 +132,7 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
       <div class="logo">デク</div>
       <div class="plus-ultra">PLUS ULTRA</div>
     </div>
-    <div class="pill">v0.6</div>
+    <div class="pill">v0.7</div>
   </div>
 
   <div class="hero-banner">
@@ -208,6 +208,7 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
       <label>明日やること</label>
       <textarea id="tomorrowAction" rows="3" placeholder="例：10時〜12時で50架電"></textarea>
       <button class="save" onclick="saveDailyReport()">日報を保存</button>
+      <div class="sync-status" id="reportSyncStatus">Googleスプレッドシート連携：準備完了</div>
     </div>
     <div class="card report-history" style="margin-top:12px">
       <div class="section" style="margin:0 0 8px"><b>過去の日報</b></div>
@@ -477,17 +478,62 @@ function loadReportForm(){
   document.getElementById('tomorrowAction').value=r.tomorrow||'';
   renderReportSummary();
 }
-function saveDailyReport(){
+async function saveDailyReport(){
   const key=document.getElementById('reportDate').value||dateKey();
-  reports[key]={
+  const report={
     good:document.getElementById('goodPoint').value.trim(),
     reflection:document.getElementById('reflection').value.trim(),
     tomorrow:document.getElementById('tomorrowAction').value.trim(),
     savedAt:Date.now()
   };
+
+  // まずDEKU端末内へ保存
+  reports[key]=report;
   localStorage.setItem('dekuReports',JSON.stringify(reports));
   renderReportHistory();
-  alert('日報を保存しました');
+
+  // その日の行動実績を自動集計して日報と一緒に送信
+  const s=stats(logsForDay(key));
+  const payload={
+    type:'report',
+    date:key,
+    calls:s.calls,
+    connects:s.connects,
+    appts:s.appts,
+    meetings:s.meetings,
+    events:s.events,
+    good:report.good,
+    reflection:report.reflection,
+    tomorrow:report.tomorrow,
+    savedAt:report.savedAt
+  };
+
+  const syncEl=document.getElementById('reportSyncStatus');
+  if(syncEl){
+    syncEl.textContent='Googleスプレッドシートへ送信中…';
+    syncEl.className='sync-status';
+  }
+
+  try{
+    await fetch(DEKU_SHEET_API,{
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify(payload)
+    });
+
+    if(syncEl){
+      syncEl.textContent='Googleスプレッドシートへ日報を送信しました';
+      syncEl.className='sync-status ok';
+    }
+    alert('日報を保存しました');
+  }catch(e){
+    if(syncEl){
+      syncEl.textContent='DEKUには保存済み。スプレッドシート送信に失敗しました';
+      syncEl.className='sync-status err';
+    }
+    alert('日報はDEKUに保存しました。スプレッドシートへの送信だけ失敗しました。');
+  }
 }
 function renderReportHistory(){
   const el=document.getElementById('reportHistory');
@@ -588,7 +634,7 @@ function renderProgress(ms,ws,ds,mg,wg,dg){
 }
 
 function exportBackup(){
-  const payload={version:'0.6',exportedAt:new Date().toISOString(),logs:data,reports,goals};
+  const payload={version:'0.7',exportedAt:new Date().toISOString(),logs:data,reports,goals};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`deku-backup-${dateKey()}.json`;a.click();URL.revokeObjectURL(a.href);
 }
