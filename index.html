@@ -89,23 +89,13 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(17,17,17,.85)}
 .small{background:#163b33;color:#eafff8}
 .add{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);width:min(528px,calc(100% - 32px));background:linear-gradient(90deg,#0f9e84,#1fd3b0);color:white;padding:15px;border-radius:18px;font-size:15px;z-index:5;border:3px solid var(--ink);box-shadow:0 7px 0 #075e50}
 nav{position:fixed;bottom:0;left:0;right:0;background:#0b211d;border-top:3px solid #164c41;display:flex;justify-content:center;z-index:10;box-shadow:0 -6px 20px rgba(0,0,0,.08)}
-.navin{width:min(560px,100%);display:grid;grid-template-columns:repeat(5,1fr)}
+.navin{width:min(560px,100%);display:grid;grid-template-columns:repeat(6,1fr)}
 nav button{background:#0b211d;color:#86b7ab;padding:12px 2px;border-radius:0;font-size:10px;border:0;box-shadow:none;border-right:1px solid #164c41}
 nav button:last-child{border-right:0}
 .active{color:#04110e!important;background:#26d8b7!important}
 .page{display:none}.page.on{display:block}
 textarea,input,select{width:100%;border:2px solid var(--ink);border-radius:14px;padding:11px;margin:5px 0 11px;font:inherit;background:#102f29;color:#fff} select option{background:#102f29;color:#fff} input::placeholder,textarea::placeholder{color:#9fc7bf}
-input[type="date"],
-input[type="month"]{
-  display:block;
-  width:100%;
-  max-width:100%;
-  min-width:0;
-  box-sizing:border-box;
-  -webkit-appearance:none;
-  appearance:none;
-}
-  label{font-size:12px;font-weight:900;color:#d9fff7}
+label{font-size:12px;font-weight:900;color:#d9fff7}
 .save{width:100%;background:linear-gradient(90deg,#0f9e84,#25d9b7);color:white;padding:13px}
 .secondary{width:100%;background:#21473d;color:#eafff8;padding:12px}
 .danger{background:#3a201d;color:#ff9d8e;border:2px solid var(--danger);box-shadow:0 4px 0 #d8b0ad}
@@ -132,6 +122,10 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
 .sync-status{font-size:12px;font-weight:800;margin-top:10px;color:var(--mut)}
 .sync-status.ok{color:#72f2da}
 .sync-status.err{color:#ff9d8e}
+.learn-hero{margin:16px 0;background:linear-gradient(135deg,#0a493d,#0e8f79);border:3px solid var(--ink);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.learn-hero b{font-size:19px;display:block;margin-bottom:5px}.learn-hero span{font-size:13px;color:#d9fff7;font-weight:700}
+.learn-item{padding:14px 0;border-bottom:2px dashed var(--line)}.learn-item:last-child{border-bottom:0}
+.learn-item h2{font-size:16px;margin:7px 0}.learn-link{color:#72f2da;font-size:12px;font-weight:900;text-decoration:none}.learn-action{margin-top:9px;padding:10px;background:#173d34;border-radius:12px;font-size:13px;line-height:1.55}.learn-tags{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.status-done{background:#1d745f;color:#eafff8}.status-planned{background:#4b4122;color:#fff0b3}
 @media (max-width:480px){.hero-title{font-size:24px}.logo{font-size:26px}}
 </style>
 </head>
@@ -142,7 +136,7 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
       <div class="logo">デク</div>
       <div class="plus-ultra">PLUS ULTRA</div>
     </div>
-    <div class="pill">v0.7</div>
+    <div class="pill">v0.8</div>
   </div>
 
   <div class="hero-banner">
@@ -226,6 +220,20 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
     </div>
   </section>
 
+  <section id="learn" class="page">
+    <h1>学びログ</h1><div class="sub">YouTubeで得た気づきを、次の行動に変える</div>
+    <div class="learn-hero"><b>見て終わりにしない。</b><span>学び → 行動 → 結果を残して、成果につながる知識を見つけよう。</span></div>
+    <div class="card">
+      <label>YouTubeリンク（任意）</label><input id="learnUrl" type="url" placeholder="https://www.youtube.com/watch?v=...">
+      <label>動画タイトル</label><input id="learnTitle" placeholder="例：営業ヒアリングで本音を引き出す方法">
+      <div class="row"><div><label>ジャンル</label><select id="learnCategory"><option>営業</option><option>採用</option><option>不動産</option><option>マネジメント</option><option>自己成長</option><option>その他</option></select></div><div><label>おすすめ度</label><select id="learnRating"><option value="5">★★★★★</option><option value="4">★★★★☆</option><option value="3">★★★☆☆</option><option value="2">★★☆☆☆</option><option value="1">★☆☆☆☆</option></select></div></div>
+      <label>学び</label><textarea id="learnInsight" rows="3" placeholder="例：説明より先に、現状・理想・障壁を聞く"></textarea>
+      <label>次の行動</label><textarea id="learnAction" rows="2" placeholder="例：次回商談で3つの質問を必ず聞く"></textarea>
+      <button class="save" onclick="saveLearning()">学びを保存</button>
+    </div>
+    <div class="card" style="margin-top:12px"><div class="section" style="margin:0 0 8px"><b>学びの履歴</b><span class="badge" id="learningCount">0件</span></div><div id="learningHistory"></div></div>
+  </section>
+
   <section id="goals" class="page">
     <h1>目標設定</h1><div class="sub">年間 → 月間 → 週間 → 今日の行動へ落とし込む</div>
 
@@ -295,6 +303,7 @@ hr{border:0;border-top:2px solid var(--line);margin:14px 0}
   <button class="active" onclick="show('today',this)">今日</button>
   <button onclick="show('log',this)">実績</button>
   <button onclick="show('report',this)">日報</button>
+  <button onclick="show('learn',this)">学び</button>
   <button onclick="show('goals',this)">目標</button>
   <button onclick="show('week',this)">分析</button>
 </div></nav>
@@ -308,6 +317,7 @@ const DEKU_SHEET_API="https://script.google.com/macros/s/AKfycbx2KSCfhoB05Hyp-gZ
 let data=JSON.parse(localStorage.getItem('dekuLogs')||'[]');
 let reports=JSON.parse(localStorage.getItem('dekuReports')||'{}');
 let goals=JSON.parse(localStorage.getItem('dekuGoals')||'{"months":{},"weeks":{},"days":{}}');
+let learnings=JSON.parse(localStorage.getItem('dekuLearnings')||'[]');
 if(!goals.months) goals.months={};
 if(!goals.weeks) goals.weeks={};
 if(!goals.days) goals.days={};
@@ -328,6 +338,7 @@ function saveAll(){
   localStorage.setItem('dekuLogs',JSON.stringify(data));
   localStorage.setItem('dekuReports',JSON.stringify(reports));
   localStorage.setItem('dekuGoals',JSON.stringify(goals));
+  localStorage.setItem('dekuLearnings',JSON.stringify(learnings));
 }
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
@@ -453,6 +464,50 @@ function refresh(){
   renderReportSummary();
   renderReportHistory();
   renderProgress(ms,ws,ds,mg,wg,dg);
+  renderLearningHistory();
+}
+
+function safeYoutubeUrl(value){
+  try{
+    const u=new URL(value);
+    return /(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(u.hostname) ? u.href : '';
+  }catch(e){return ''}
+}
+function saveLearning(){
+  const title=document.getElementById('learnTitle').value.trim();
+  const insight=document.getElementById('learnInsight').value.trim();
+  const action=document.getElementById('learnAction').value.trim();
+  const rawUrl=document.getElementById('learnUrl').value.trim();
+  if(!title || !insight || !action){alert('動画タイトル・学び・次の行動を入力してください');return}
+  if(rawUrl && !safeYoutubeUrl(rawUrl)){alert('YouTubeのリンクを入力してください');return}
+  learnings.push({id:Date.now(),title,insight,action,url:rawUrl,category:document.getElementById('learnCategory').value,rating:+document.getElementById('learnRating').value,status:'実行予定',t:Date.now()});
+  localStorage.setItem('dekuLearnings',JSON.stringify(learnings));
+  document.getElementById('learnUrl').value='';
+  document.getElementById('learnTitle').value='';
+  document.getElementById('learnInsight').value='';
+  document.getElementById('learnAction').value='';
+  renderLearningHistory();
+  alert('学びを保存しました');
+}
+function toggleLearningStatus(id){
+  const item=learnings.find(x=>x.id===id);if(!item)return;
+  item.status=item.status==='実行済み'?'実行予定':'実行済み';
+  localStorage.setItem('dekuLearnings',JSON.stringify(learnings));renderLearningHistory();
+}
+function deleteLearning(id){
+  if(!confirm('この学びログを削除しますか？'))return;
+  learnings=learnings.filter(x=>x.id!==id);localStorage.setItem('dekuLearnings',JSON.stringify(learnings));renderLearningHistory();
+}
+function renderLearningHistory(){
+  const el=document.getElementById('learningHistory'), count=document.getElementById('learningCount');
+  if(!el||!count)return;
+  count.textContent=`${learnings.length}件`;
+  if(!learnings.length){el.innerHTML='<span class="muted">まだ学びログはありません。最初の1本を残そう。</span>';return}
+  el.innerHTML=[...learnings].reverse().map(x=>{
+    const url=safeYoutubeUrl(x.url||'');
+    const date=new Date(x.t).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
+    return `<div class="learn-item"><div class="history-head"><div class="learn-tags"><span class="badge">${escapeHtml(x.category)}</span><span class="badge ${x.status==='実行済み'?'status-done':'status-planned'}">${escapeHtml(x.status)}</span><span class="muted">${date}　${'★'.repeat(+x.rating||0)}</span></div><h2>${escapeHtml(x.title)}</h2>${url?`<a class="learn-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">▶ YouTubeを開く</a>`:''}</div><div class="history-actions"><button class="small" onclick="toggleLearningStatus(${x.id})">${x.status==='実行済み'?'戻す':'実行済'}</button><button class="danger" onclick="deleteLearning(${x.id})">削除</button></div></div><div class="learn-action"><b>学び：</b>${escapeHtml(x.insight)}</div><div class="learn-action"><b>次の行動：</b>${escapeHtml(x.action)}</div></div>`;
+  }).join('');
 }
 
 function renderTodayHistory(){
@@ -644,7 +699,7 @@ function renderProgress(ms,ws,ds,mg,wg,dg){
 }
 
 function exportBackup(){
-  const payload={version:'0.7',exportedAt:new Date().toISOString(),logs:data,reports,goals};
+  const payload={version:'0.8',exportedAt:new Date().toISOString(),logs:data,reports,goals,learnings};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`deku-backup-${dateKey()}.json`;a.click();URL.revokeObjectURL(a.href);
 }
@@ -654,7 +709,7 @@ function importBackup(ev){
   reader.onload=()=>{try{
     const b=JSON.parse(reader.result); if(!b.logs||!b.reports||!b.goals)throw new Error('形式');
     if(!confirm('現在のDEKUデータを、このバックアップ内容で置き換えますか？'))return;
-    data=b.logs;reports=b.reports;goals=b.goals;if(!goals.annual)goals.annual={text:'',why:''};saveAll();loadGoalForm();loadReportForm();refresh();alert('バックアップを復元しました');
+    data=b.logs;reports=b.reports;goals=b.goals;learnings=Array.isArray(b.learnings)?b.learnings:[];if(!goals.annual)goals.annual={text:'',why:''};saveAll();loadGoalForm();loadReportForm();refresh();alert('バックアップを復元しました');
   }catch(e){alert('バックアップファイルを読み込めませんでした');}};
   reader.readAsText(file);
 }
