@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>デク PLUS ULTRA v0.8</title>
+<link rel="apple-touch-icon" href="./apple-touch-icon.png?v=ysr1">
+<link rel="icon" type="image/png" href="./apple-touch-icon.png?v=ysr1">
+<meta name="apple-mobile-web-app-title" content="DEKU">
+<title>デク PLUS ULTRA v0.9</title>
 <style>
 :root{
   --g:#14b89a;
@@ -140,6 +143,31 @@ body.intro-open{overflow:hidden}
 @keyframes intro-logo{from{opacity:0;transform:scale(.91)}to{opacity:1;transform:scale(1)}}
 @keyframes intro-label{0%,55%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.intro,.intro-start img,.intro-start span{animation:none;transition:none}.intro::after{display:none}}
+
+/* DEKU 0.9 — shared layout */
+:root{--radius:18px}
+.app{padding-bottom:150px}.card,.kpi,.learn-hero{border-radius:var(--radius);box-shadow:0 5px 16px #0004;border:1px solid var(--line)}
+.row,.row3{grid-template-columns:repeat(2,minmax(0,1fr))}.row3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.row>div,.row3>div,.grow,.history-head>div{min-width:0}
+input,select,textarea{min-width:0;display:block;min-height:46px;font-size:16px}
+input[type=date],input[type=month]{appearance:none;-webkit-appearance:none;min-width:0;max-width:100%}
+button{min-height:44px;font-weight:800;box-shadow:none}.card h2{margin-bottom:12px}
+.card,.event,.history-row,.learn-action{overflow-wrap:anywhere}.history-actions{flex-wrap:wrap}
+nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-area-inset-bottom))}
+.hero-banner{margin-bottom:22px}.hero-title{font-size:24px}.hero-copy{line-height:1.7}
+.score-head{display:flex;justify-content:space-between;align-items:center;gap:12px}.score-value{font-size:48px;color:#72f2da;font-weight:900;line-height:1.1}
+.score-head small{font-size:13px;color:var(--mut)}.score-details{margin-top:10px;font-size:12px;line-height:1.7;color:var(--mut)}
+.trend{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:18px;align-items:end}
+.trend-col{text-align:center;font-size:10px;color:var(--mut)}.trend-track{height:70px;display:flex;align-items:flex-end;justify-content:center;margin:6px 0;background:#061f1a;border-radius:7px}
+.trend-fill{width:100%;background:linear-gradient(#72f2da,#0f9e84);border-radius:7px;min-height:2px}.trend-col b{color:var(--txt);font-size:13px}
+.task{padding:12px 0;border-bottom:1px solid var(--line)}.task:last-child{border-bottom:0}.task.done .task-title{text-decoration:line-through;color:var(--mut)}
+.task-top{display:flex;gap:10px;align-items:center}.task-top button{flex:none}.task-meta{margin:6px 0;font-size:12px;color:var(--mut)}
+.streaks{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.action-buttons{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.timeline-panel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}.timeline-panel>div{background:#173d34;padding:12px;border-radius:12px;min-width:0}.timeline-panel b{display:block;font-size:21px;margin:6px 0}.timeline-panel small{font-size:11px;color:var(--mut)}
+#reportDraft{white-space:pre-wrap;line-height:1.8;font-size:13px}.goal-top{gap:10px}.goal-top span{text-align:right}
+.toast{position:fixed;bottom:calc(130px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#d4fff1;color:#08291e;padding:12px 18px;border-radius:12px;z-index:1100;width:max-content;max-width:90%;font-size:13px;box-shadow:0 4px 24px #0008}
+@media(min-width:900px){.app{max-width:840px}.navin{width:840px}.add{width:808px}.hero-title{font-size:28px}.kpi b{font-size:30px}}
+@media(max-width:360px){.row3{grid-template-columns:1fr}.history-head{flex-wrap:wrap}.timeline-panel>div{padding:8px}.kpi{padding:10px}.kpi b{font-size:21px}}
 </style>
 </head>
 <body class="intro-open">
@@ -156,7 +184,7 @@ body.intro-open{overflow:hidden}
       <div class="logo">デク</div>
       <div class="plus-ultra">PLUS ULTRA</div>
     </div>
-    <div class="pill">v0.8</div>
+    <div class="pill">v0.9</div>
   </div>
 
   <div class="hero-banner">
@@ -178,11 +206,13 @@ body.intro-open{overflow:hidden}
       <div class="kpi"><b id="meetings">0</b><span id="meetingsLabel">商談 / 0</span></div>
     </div>
 
-    <div class="card" id="todayGoalCard">
+    <div class="card" id="scoreCard"><div class="score-head"><div><h2>DEKU SCORE</h2><div class="score-value" id="scoreValue">0 <small>/ 100</small></div></div><span class="badge" id="achievementBadge">目標未設定</span></div><div class="streaks" id="streaks"></div><div class="trend" id="scoreTrend" aria-label="過去7日間のDEKU SCORE"></div><details class="score-details"><summary>スコアの計算方法</summary>目標達成度60点（設定した項目の平均）＋行動記録20点＋学び10点＋日報保存10点。目標未設定の場合は達成度0点。各日の現在の保存データから計算します。成果や能力の評価ではなく、自分の行動を振り返る目安です。</details></div>
+    <div class="card" id="todayGoalCard" style="margin-top:14px">
       <div class="section" style="margin:0 0 10px"><b>今日の目標進捗</b><span class="badge" id="todayGoalBadge">未設定</span></div>
       <div id="todayProgress"></div>
     </div>
 
+    <div class="card" style="margin-top:14px"><div class="section" style="margin:0 0 12px"><h2>今日やること</h2><span class="badge" id="taskCount"></span></div><div id="todayTasks"></div><details style="margin-top:12px"><summary>行動の予定を追加</summary><label>やること</label><input id="taskTitle" placeholder="例：提案書を送る"><div class="row"><div><label>実行日</label><input id="taskDate" type="date"></div><div><label>カテゴリー</label><select id="taskCategory"><option>その他</option><option>架電</option><option>商談</option><option>交流会</option></select></div></div><button class="secondary" onclick="addTask()">予定に追加</button></details><details style="margin-top:12px"><summary>明日以降の予定</summary><div id="futureTasks"></div></details></div>
     <div class="googlebox">
       <button class="gbtn" id="googleBtn" onclick="connectGoogle()">Googleカレンダーを接続</button>
       <div class="gstatus" id="googleStatus">未接続</div>
@@ -196,7 +226,7 @@ body.intro-open{overflow:hidden}
   <section id="log" class="page">
     <h1>実績入力</h1><div class="sub">終わったら数字だけ。30秒で記録。</div>
     <div class="card" style="margin-top:16px">
-      <label>行動カテゴリー</label>
+      <div class="muted" id="logOrigin"></div><label>実績の日付</label><input id="logDate" type="date"><label>行動カテゴリー</label>
       <select id="cat" onchange="toggleFields()">
         <option>架電</option><option>商談</option><option>交流会</option><option>移動</option><option>その他</option>
       </select>
@@ -231,7 +261,7 @@ body.intro-open{overflow:hidden}
       <textarea id="reflection" rows="3" placeholder="例：ニーズ確認が浅かった"></textarea>
       <label>明日やること</label>
       <textarea id="tomorrowAction" rows="3" placeholder="例：10時〜12時で50架電"></textarea>
-      <button class="save" onclick="saveDailyReport()">日報を保存</button>
+      <div class="action-buttons"><button class="small" onclick="shareDailyReport()">日報を共有・コピー</button></div><button class="save" onclick="saveDailyReport()">日報を保存</button>
       <div class="sync-status" id="reportSyncStatus">Googleスプレッドシート連携：準備完了</div>
     </div>
     <div class="card report-history" style="margin-top:12px">
@@ -241,15 +271,15 @@ body.intro-open{overflow:hidden}
   </section>
 
   <section id="learn" class="page">
-    <h1>学びログ</h1><div class="sub">YouTubeで得た気づきを、次の行動に変える</div>
+    <h1>学びログ</h1><div class="sub">動画・本・商談の気づきを、次の行動に変える</div>
     <div class="learn-hero"><b>見て終わりにしない。</b><span>学び → 行動 → 結果を残して、成果につながる知識を見つけよう。</span></div>
     <div class="card">
-      <label>YouTubeリンク（任意）</label><input id="learnUrl" type="url" placeholder="https://www.youtube.com/watch?v=...">
-      <label>動画タイトル</label><input id="learnTitle" placeholder="例：営業ヒアリングで本音を引き出す方法">
+      <label>学びのきっかけ</label><select id="learnSource"><option>YouTube</option><option>本</option><option>商談</option><option>人から聞いた話</option><option>その他</option></select><label>参考リンク（任意）</label><input id="learnUrl" type="url" placeholder="https://www.youtube.com/watch?v=...">
+      <label>タイトル</label><input id="learnTitle" placeholder="例：営業ヒアリングで本音を引き出す方法">
       <div class="row"><div><label>ジャンル</label><select id="learnCategory"><option>営業</option><option>採用</option><option>不動産</option><option>マネジメント</option><option>自己成長</option><option>その他</option></select></div><div><label>おすすめ度</label><select id="learnRating"><option value="5">★★★★★</option><option value="4">★★★★☆</option><option value="3">★★★☆☆</option><option value="2">★★☆☆☆</option><option value="1">★☆☆☆☆</option></select></div></div>
       <label>学び</label><textarea id="learnInsight" rows="3" placeholder="例：説明より先に、現状・理想・障壁を聞く"></textarea>
       <label>次の行動</label><textarea id="learnAction" rows="2" placeholder="例：次回商談で3つの質問を必ず聞く"></textarea>
-      <button class="save" onclick="saveLearning()">学びを保存</button>
+      <label>行動のカテゴリー</label><select id="learnActionCategory"><option>その他</option><option>商談</option><option>架電</option><option>交流会</option></select><label>行動する日</label><input id="learnActionDate" type="date"><button class="save" onclick="saveLearning()">学びを保存</button>
     </div>
     <div class="card" style="margin-top:12px"><div class="section" style="margin:0 0 8px"><b>学びの履歴</b><span class="badge" id="learningCount">0件</span></div><div id="learningHistory"></div></div>
   </section>
@@ -301,12 +331,12 @@ body.intro-open{overflow:hidden}
         <div><label>アポ</label><input id="dayApptsTarget" type="number" min="0"></div>
         <div><label>商談</label><input id="dayMeetingsTarget" type="number" min="0"></div>
       </div>
-      <button class="save" onclick="saveDayGoals()">今日の目標を保存</button>
+      <label>交流会</label><input id="dayEventsTarget" type="number" min="0"><button class="save" onclick="saveDayGoals()">今日の目標を保存</button>
     </div>
   </section>
 
   <section id="week" class="page">
-    <h1>進捗分析</h1><div class="sub">月・週・今日の目標に対する実績</div>
+    <h1>過去・現在・未来</h1><div class="sub">積み重ねた行動から、次の一歩を決める</div><div class="card" style="margin-top:16px"><h2>今月の着地予測</h2><div id="forecast"></div><div class="muted">今月の累計 ÷ 経過した暦日数 × 月の日数。休日も含む単純なペース予測です。</div></div>
     <div class="card" style="margin-top:16px">
       <h2>今月</h2><div id="monthProgress"></div>
     </div>
@@ -317,6 +347,7 @@ body.intro-open{overflow:hidden}
       <h2>今日</h2><div id="dayProgress"></div>
     </div>
   </section>
+<section class="card" style="margin-top:24px"><details><summary>設定・データ管理</summary><label>ロゴ起動画面</label><select id="introMode" onchange="saveIntroMode(this.value)"><option value="always">毎回表示</option><option value="daily">その日の初回だけ</option><option value="off">表示しない</option></select><div class="action-buttons"><button class="small" onclick="exportBackup()">バックアップを保存</button><button class="small" onclick="document.getElementById('backupFile').click()">バックアップを復元</button></div><input style="display:none" id="backupFile" type="file" accept="application/json" onchange="importBackup(event)"><p class="muted">データはこのブラウザに保存されます。Googleシートへの行動・日報送信は既存の連携を使用します。学び・予定・目標の端末間同期は未対応です。</p></details></section>
 </div>
 
 <nav><div class="navin">
@@ -339,13 +370,18 @@ function enterDeku(){
   intro.classList.add('leaving');
   const heading=document.querySelector('#today h1');
   heading.setAttribute('tabindex','-1');heading.focus({preventScroll:true});
-  setTimeout(()=>intro.remove(),450);
+  localStorage.setItem('dekuIntroLastDay',new Date().toLocaleDateString('en-CA'));
+  setTimeout(()=>intro.style.display='none',450);
 }
-document.querySelector('.intro-start').focus({preventScroll:true});
+if(localStorage.getItem('dekuIntroMode')==='off'||(localStorage.getItem('dekuIntroMode')==='daily'&&localStorage.getItem('dekuIntroLastDay')===new Date().toLocaleDateString('en-CA'))){enterDeku()}else{document.querySelector('.intro-start').focus({preventScroll:true});}
 </script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 let tokenClient;
+let googleAttempts=0;
+let savingLog=false,savingReport=false;
+let pendingOrigin=null,calendarItems=[];
+let tasks=JSON.parse(localStorage.getItem('dekuTasks')||'[]');
 const GOOGLE_CLIENT_ID="207350844424-eoimuqkn8ens2j8pti5nlflg95mqj5fo.apps.googleusercontent.com";
 const DEKU_SHEET_API="https://script.google.com/macros/s/AKfycbx2KSCfhoB05Hyp-gZHctDbRllt7v1p2O4uwmtmFtXVfdBeCpHrpus5_wGkW2jeeyak/exec";
 
@@ -374,6 +410,7 @@ function saveAll(){
   localStorage.setItem('dekuReports',JSON.stringify(reports));
   localStorage.setItem('dekuGoals',JSON.stringify(goals));
   localStorage.setItem('dekuLearnings',JSON.stringify(learnings));
+  localStorage.setItem('dekuTasks',JSON.stringify(tasks));
 }
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
@@ -391,30 +428,46 @@ function show(id,b){
   refresh();
 }
 function openLog(cat){
+  pendingOrigin=null;document.getElementById('logOrigin').textContent='';document.getElementById('logDate').value=dateKey();for(const id of ['c','a','connect'])document.getElementById(id).value=0;document.getElementById('memo').value='';document.getElementById('next').value='';
   show('log',document.querySelectorAll('nav button')[1]);
   document.getElementById('cat').value=cat;
   toggleFields();
 }
 function toggleFields(){
   const m=document.getElementById('cat').value==='商談';
-  document.getElementById('callfields').classList.toggle('hide',m);
+  document.getElementById('callfields').classList.toggle('hide',document.getElementById('cat').value!=='架電');
+
   document.getElementById('meetingfields').classList.toggle('hide',!m);
 }
 async function saveLog(){
+  if(savingLog)return;
   const cat=document.getElementById('cat').value;
+  const key=document.getElementById('logDate').value;
+  if(!validDay(key)){alert('実績の日付を入力してください');return}
+  if(pendingOrigin?.calendarId&&data.some(x=>x.calendarId===pendingOrigin.calendarId)){alert('この予定は記録済みです');return}
+  const nums=['c','a','connect'].map(id=>Number(document.getElementById(id).value));
+  if(cat==='架電'&&nums.some(n=>!Number.isInteger(n)||n<0)){alert('件数は0以上の整数で入力してください');return}
+  savingLog=true;
+  const saveButton=document.querySelector('button[onclick="saveLog()"]');saveButton.disabled=true;
+  try{
+  const stamp=new Date(key+'T12:00:00').getTime();
   const log={
+    id:newId(),
+    ...(pendingOrigin||{}),
     cat,
-    c:+document.getElementById('c').value||0,
-    a:+document.getElementById('a').value||0,
-    connect:+document.getElementById('connect').value||0,
+    c:cat==='架電'?nums[0]:0,
+    a:cat==='架電'?nums[1]:0,
+    connect:cat==='架電'?nums[2]:0,
     result:document.getElementById('result').value,
     next:document.getElementById('next').value,
     memo:document.getElementById('memo').value,
-    t:Date.now()
+    t:key===dateKey()?Date.now():stamp
   };
 
   // 端末内にも保存。通信できない時でも入力内容を失わない。
   data.push(log);
+  if(log.taskId){const task=tasks.find(x=>x.id===log.taskId);if(task){task.done=true;task.completedAt=log.t;const learning=learnings.find(x=>x.id===task.learningId);if(learning){learning.status='実行済み';learning.completedAt=log.t}}}
+  saveAll();pendingOrigin=null;
   localStorage.setItem('dekuLogs',JSON.stringify(data));
 
   const syncEl=document.getElementById('sheetSyncStatus');
@@ -429,11 +482,12 @@ async function saveLog(){
     await fetch(DEKU_SHEET_API,{
       method:'POST',
       mode:'no-cors',
+      signal:AbortSignal.timeout(10000),
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify(log)
     });
     if(syncEl){
-      syncEl.textContent='Googleスプレッドシートへ送信しました';
+      syncEl.textContent='端末に保存済み・シートへ送信要求済み（反映はシートで確認）';
       syncEl.className='sync-status ok';
     }
   }catch(e){
@@ -449,7 +503,8 @@ async function saveLog(){
   document.getElementById('memo').value='';
   document.getElementById('next').value='';
   refresh();
-  show('today',document.querySelectorAll('nav button')[0]);
+  show('today',document.querySelectorAll('nav button')[0]);toast('実績を保存しました');
+  }finally{savingLog=false;saveButton.disabled=false;}
 }
 
 function stats(list){
@@ -489,10 +544,10 @@ function refresh(){
   document.getElementById('apptsLabel').textContent=`アポ / ${dg.appts||0}`;
   document.getElementById('meetingsLabel').textContent=`商談 / ${dg.meetings||0}`;
 
-  const anyDayGoal=dg.calls||dg.appts||dg.meetings;
+  const anyDayGoal=dg.calls||dg.appts||dg.meetings||dg.events;
   document.getElementById('todayGoalBadge').textContent=anyDayGoal?'設定済み':'未設定';
   document.getElementById('todayProgress').innerHTML=anyDayGoal
-    ? progressLine('架電',ds.calls,+dg.calls||0)+progressLine('アポ',ds.appts,+dg.appts||0)+progressLine('商談',ds.meetings,+dg.meetings||0)
+    ? progressLine('架電',ds.calls,+dg.calls||0)+progressLine('アポ',ds.appts,+dg.appts||0)+progressLine('商談',ds.meetings,+dg.meetings||0)+progressLine('交流会',ds.events,+dg.events||0,'回')
     : '<div class="muted">「目標」タブから今日の目標を設定できます。</div>';
 
   renderTodayHistory();
@@ -500,12 +555,13 @@ function refresh(){
   renderReportHistory();
   renderProgress(ms,ws,ds,mg,wg,dg);
   renderLearningHistory();
+  renderDashboard();
 }
 
 function safeYoutubeUrl(value){
   try{
     const u=new URL(value);
-    return /(^|\.)youtube\.com$|(^|\.)youtu\.be$/i.test(u.hostname) ? u.href : '';
+    return ['https:','http:'].includes(u.protocol)?u.href:'';
   }catch(e){return ''}
 }
 function saveLearning(){
@@ -513,25 +569,29 @@ function saveLearning(){
   const insight=document.getElementById('learnInsight').value.trim();
   const action=document.getElementById('learnAction').value.trim();
   const rawUrl=document.getElementById('learnUrl').value.trim();
-  if(!title || !insight || !action){alert('動画タイトル・学び・次の行動を入力してください');return}
-  if(rawUrl && !safeYoutubeUrl(rawUrl)){alert('YouTubeのリンクを入力してください');return}
-  learnings.push({id:Date.now(),title,insight,action,url:rawUrl,category:document.getElementById('learnCategory').value,rating:+document.getElementById('learnRating').value,status:'実行予定',t:Date.now()});
+  if(!title || !insight || !action){alert('タイトル・学び・次の行動を入力してください');return}
+  if(rawUrl && !safeYoutubeUrl(rawUrl)){alert('httpまたはhttpsのリンクを入力してください');return}
+  const due=document.getElementById('learnActionDate').value;if(!validDay(due)){alert('行動する日を入力してください');return}
+  const learning={id:Date.now(),title,insight,action,url:rawUrl,source:document.getElementById('learnSource').value,due,category:document.getElementById('learnCategory').value,rating:+document.getElementById('learnRating').value,status:'実行予定',t:Date.now()};
+  learnings.push(learning);tasks.push({id:newId(),title:action,date:due,category:document.getElementById('learnActionCategory').value,learningId:learning.id,done:false});saveAll();
   localStorage.setItem('dekuLearnings',JSON.stringify(learnings));
   document.getElementById('learnUrl').value='';
   document.getElementById('learnTitle').value='';
   document.getElementById('learnInsight').value='';
   document.getElementById('learnAction').value='';
   renderLearningHistory();
-  alert('学びを保存しました');
+  refresh();alert('学びを保存し、実行日の予定に追加しました');
 }
 function toggleLearningStatus(id){
   const item=learnings.find(x=>x.id===id);if(!item)return;
-  item.status=item.status==='実行済み'?'実行予定':'実行済み';
-  localStorage.setItem('dekuLearnings',JSON.stringify(learnings));renderLearningHistory();
+  const linked=tasks.find(x=>x.learningId===id);
+  if(item.status==='実行済み'){alert('実行の取り消しは、行動履歴の「取消」から行えます');return}
+  if(!linked){tasks.push({id:newId(),title:item.action,date:dateKey(),category:'その他',learningId:id,done:false});saveAll()}
+  completeTask(tasks.find(x=>x.learningId===id).id);
 }
 function deleteLearning(id){
-  if(!confirm('この学びログを削除しますか？'))return;
-  learnings=learnings.filter(x=>x.id!==id);localStorage.setItem('dekuLearnings',JSON.stringify(learnings));renderLearningHistory();
+  if(!confirm('この学びと未実行の予定を削除しますか？ 実績は残ります。'))return;
+  learnings=learnings.filter(x=>x.id!==id);tasks=tasks.filter(x=>x.learningId!==id||x.done);saveAll();refresh();
 }
 function renderLearningHistory(){
   const el=document.getElementById('learningHistory'), count=document.getElementById('learningCount');
@@ -541,7 +601,7 @@ function renderLearningHistory(){
   el.innerHTML=[...learnings].reverse().map(x=>{
     const url=safeYoutubeUrl(x.url||'');
     const date=new Date(x.t).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
-    return `<div class="learn-item"><div class="history-head"><div class="learn-tags"><span class="badge">${escapeHtml(x.category)}</span><span class="badge ${x.status==='実行済み'?'status-done':'status-planned'}">${escapeHtml(x.status)}</span><span class="muted">${date}　${'★'.repeat(+x.rating||0)}</span></div><h2>${escapeHtml(x.title)}</h2>${url?`<a class="learn-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">▶ YouTubeを開く</a>`:''}</div><div class="history-actions"><button class="small" onclick="toggleLearningStatus(${x.id})">${x.status==='実行済み'?'戻す':'実行済'}</button><button class="danger" onclick="deleteLearning(${x.id})">削除</button></div></div><div class="learn-action"><b>学び：</b>${escapeHtml(x.insight)}</div><div class="learn-action"><b>次の行動：</b>${escapeHtml(x.action)}</div></div>`;
+    return `<article class="learn-item"><div class="history-head"><div class="grow"><div class="learn-tags"><span class="badge">${escapeHtml(x.category)}</span><span class="badge ${x.status==='実行済み'?'status-done':'status-planned'}">${escapeHtml(x.status)}</span><span class="muted">${date}　${'★'.repeat(Math.max(0,Math.min(5,+x.rating||0)))}</span></div><h2>${escapeHtml(x.title)}</h2>${url?`<a class="learn-link" href="${escapeHtml(url)}" target="_blank" rel="noopener">参考リンクを開く</a>`:''}</div></div><div class="learn-action"><b>学び：</b>${escapeHtml(x.insight)}</div><div class="learn-action"><b>次の行動：</b>${escapeHtml(x.action)}<br><span class="muted">${escapeHtml(x.source||'YouTube')} ／ 実行日：${escapeHtml(x.due||'未設定')}</span></div><div class="action-buttons">${x.status==='実行済み'?'<span class="badge">実行済み</span>':`<button class="small" onclick="toggleLearningStatus(${x.id})">実行を記録</button>`}<button class="small" onclick="shareLearning(${x.id})">共有・コピー</button><button class="danger" onclick="deleteLearning(${x.id})">削除</button></div></article>`;
   }).join('');
 }
 
@@ -552,13 +612,15 @@ function renderTodayHistory(){
     const tm=new Date(x.t).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
     const detail=x.cat==='商談'
       ? `${escapeHtml(x.result||'')} ${x.next?`／ 次回：${escapeHtml(x.next)}`:''}`
-      : `架電 ${x.c||0} ／ 接続 ${x.connect||0} ／ アポ ${x.a||0}`;
+      : x.cat==='架電'?`架電 ${x.c||0} ／ 接続 ${x.connect||0} ／ アポ ${x.a||0}`:'実行の記録';
     return `<div class="history-row"><div class="history-head"><div><b>${escapeHtml(x.cat)}</b> <span class="muted">${tm}</span><div class="muted">${detail}</div>${x.memo?`<div class="muted">メモ：${escapeHtml(x.memo)}</div>`:''}</div><button class="danger" onclick="deleteLog(${x.t})">取消</button></div></div>`;
   }).join('');
 }
 function deleteLog(t){
   if(!confirm('この行動記録を取り消しますか？')) return;
-  data=data.filter(x=>x.t!==t);
+  const removed=data.filter(x=>x.t===t);
+  for(const log of removed){const task=tasks.find(x=>x.id===log.taskId);if(task){task.done=false;delete task.completedAt;const learning=learnings.find(x=>x.id===task.learningId);if(learning){learning.status='実行予定';delete learning.completedAt}}}
+  data=data.filter(x=>x.t!==t);saveAll();
   localStorage.setItem('dekuLogs',JSON.stringify(data));
   refresh();
 }
@@ -567,8 +629,10 @@ function renderReportSummary(){
   const key=document.getElementById('reportDate').value||dateKey();
   const s=stats(logsForDay(key));
   const rate=s.calls?((s.appts/s.calls)*100).toFixed(1):0;
+  const lc=learnings.filter(x=>sameDay(x.t,key)).length;
+  const completed=tasks.filter(x=>x.done&&sameDay(x.completedAt,key)).length;
   document.getElementById('reportText').innerHTML=
-    `<b>${key} のサマリー</b><br><br>架電：${s.calls}件 ／ 接続：${s.connects}件 ／ アポ：${s.appts}件<br>商談：${s.meetings}件 ／ 交流会：${s.events}件 ／ アポ率：${rate}%`;
+    `<b>${key} のサマリー</b><br><br>架電：${s.calls}件 ／ 接続：${s.connects}件 ／ アポ：${s.appts}件<br>商談：${s.meetings}件 ／ 交流会：${s.events}件 ／ アポ率：${rate}%<br>学び：${lc}件 ／ 予定の実行：${completed}件 ／ DEKU SCORE：${scoreFor(key)}点`;
 }
 function loadReportForm(){
   const key=document.getElementById('reportDate').value||dateKey();
@@ -579,6 +643,7 @@ function loadReportForm(){
   renderReportSummary();
 }
 async function saveDailyReport(){
+  if(savingReport)return;
   const key=document.getElementById('reportDate').value||dateKey();
   const report={
     good:document.getElementById('goodPoint').value.trim(),
@@ -588,7 +653,15 @@ async function saveDailyReport(){
   };
 
   // まずDEKU端末内へ保存
+  if(!validDay(key)){alert('日付を入力してください');return}
+  savingReport=true;const saveButton=document.querySelector('button[onclick="saveDailyReport()"]');saveButton.disabled=true;
+  try{
   reports[key]=report;
+  const nextDay=shiftDay(key,1), followId='report-'+key;
+  const existing=tasks.find(x=>x.id===followId);
+  if(report.tomorrow){if(existing){existing.title=report.tomorrow}else{tasks.push({id:followId,title:report.tomorrow,date:nextDay,category:'その他',done:false,reportDate:key})}}
+  else if(existing&&!existing.done){tasks=tasks.filter(x=>x.id!==followId)}
+  saveAll();refresh();
   localStorage.setItem('dekuReports',JSON.stringify(reports));
   renderReportHistory();
 
@@ -596,6 +669,8 @@ async function saveDailyReport(){
   const s=stats(logsForDay(key));
   const payload={
     type:'report',
+    learningCount:learnings.filter(x=>sameDay(x.t,key)).length,
+    score:scoreFor(key),
     date:key,
     calls:s.calls,
     connects:s.connects,
@@ -618,12 +693,13 @@ async function saveDailyReport(){
     await fetch(DEKU_SHEET_API,{
       method:'POST',
       mode:'no-cors',
+      signal:AbortSignal.timeout(10000),
       headers:{'Content-Type':'text/plain;charset=utf-8'},
       body:JSON.stringify(payload)
     });
 
     if(syncEl){
-      syncEl.textContent='Googleスプレッドシートへ日報を送信しました';
+      syncEl.textContent='端末に保存済み・日報を送信要求済み（反映はシートで確認）';
       syncEl.className='sync-status ok';
     }
     alert('日報を保存しました');
@@ -634,6 +710,7 @@ async function saveDailyReport(){
     }
     alert('日報はDEKUに保存しました。スプレッドシートへの送信だけ失敗しました。');
   }
+  }finally{savingReport=false;saveButton.disabled=false}
 }
 function renderReportHistory(){
   const el=document.getElementById('reportHistory');
@@ -678,12 +755,14 @@ function loadGoalForm(){
   document.getElementById('dayCallsTarget').value=dg.calls||'';
   document.getElementById('dayApptsTarget').value=dg.appts||'';
   document.getElementById('dayMeetingsTarget').value=dg.meetings||'';
+  document.getElementById('dayEventsTarget').value=dg.events||'';
 }
 function saveAnnualGoal(){
   goals.annual={text:document.getElementById('annualGoal').value.trim(),why:document.getElementById('annualWhy').value.trim()};
   localStorage.setItem('dekuGoals',JSON.stringify(goals));refresh();alert('年間目標を保存しました');
 }
 function saveMonthGoals(){
+  if(["monthSalesTarget", "monthSalesActual", "monthCallsTarget", "monthApptsTarget", "monthMeetingsTarget", "monthEventsTarget"].some(id=>!Number.isFinite(Number(document.getElementById(id).value))||Number(document.getElementById(id).value)<0)){alert('目標は0以上の数値で入力してください');return}
   const mk=document.getElementById('goalMonth').value||monthKey();
   goals.months[mk]={
     salesTarget:+document.getElementById('monthSalesTarget').value||0,
@@ -696,6 +775,7 @@ function saveMonthGoals(){
   localStorage.setItem('dekuGoals',JSON.stringify(goals));refresh();alert('月間目標を保存しました');
 }
 function saveWeekGoals(){
+  if(["weekCallsTarget", "weekApptsTarget", "weekMeetingsTarget"].some(id=>!Number.isFinite(Number(document.getElementById(id).value))||Number(document.getElementById(id).value)<0)){alert('目標は0以上の数値で入力してください');return}
   const wk=weekKey();
   goals.weeks[wk]={
     calls:+document.getElementById('weekCallsTarget').value||0,
@@ -705,11 +785,13 @@ function saveWeekGoals(){
   localStorage.setItem('dekuGoals',JSON.stringify(goals));refresh();alert('週間目標を保存しました');
 }
 function saveDayGoals(){
+  if(["dayCallsTarget", "dayApptsTarget", "dayMeetingsTarget", "dayEventsTarget"].some(id=>!Number.isFinite(Number(document.getElementById(id).value))||Number(document.getElementById(id).value)<0)){alert('目標は0以上の数値で入力してください');return}
   const dk=dateKey();
   goals.days[dk]={
     calls:+document.getElementById('dayCallsTarget').value||0,
     appts:+document.getElementById('dayApptsTarget').value||0,
-    meetings:+document.getElementById('dayMeetingsTarget').value||0
+    meetings:+document.getElementById('dayMeetingsTarget').value||0,
+    events:+document.getElementById('dayEventsTarget').value||0
   };
   localStorage.setItem('dekuGoals',JSON.stringify(goals));refresh();alert('今日の目標を保存しました');
 }
@@ -730,11 +812,11 @@ function renderProgress(ms,ws,ds,mg,wg,dg){
   document.getElementById('dayProgress').innerHTML=
     progressLine('架電',ds.calls,+dg.calls||0)+
     progressLine('アポ',ds.appts,+dg.appts||0)+
-    progressLine('商談',ds.meetings,+dg.meetings||0);
+    progressLine('商談',ds.meetings,+dg.meetings||0)+progressLine('交流会',ds.events,+dg.events||0,'回');
 }
 
 function exportBackup(){
-  const payload={version:'0.8',exportedAt:new Date().toISOString(),logs:data,reports,goals,learnings};
+  const payload={version:'0.9',exportedAt:new Date().toISOString(),logs:data,reports,goals,learnings,tasks,introMode:localStorage.getItem('dekuIntroMode')||'always'};
   const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`deku-backup-${dateKey()}.json`;a.click();URL.revokeObjectURL(a.href);
 }
@@ -742,15 +824,16 @@ function importBackup(ev){
   const file=ev.target.files&&ev.target.files[0]; if(!file)return;
   const reader=new FileReader();
   reader.onload=()=>{try{
-    const b=JSON.parse(reader.result); if(!b.logs||!b.reports||!b.goals)throw new Error('形式');
+    const b=JSON.parse(reader.result); validateBackup(b);
     if(!confirm('現在のDEKUデータを、このバックアップ内容で置き換えますか？'))return;
-    data=b.logs;reports=b.reports;goals=b.goals;learnings=Array.isArray(b.learnings)?b.learnings:[];if(!goals.annual)goals.annual={text:'',why:''};saveAll();loadGoalForm();loadReportForm();refresh();alert('バックアップを復元しました');
+    data=b.logs;reports=b.reports;goals=b.goals;learnings=Array.isArray(b.learnings)?b.learnings:[];tasks=Array.isArray(b.tasks)?b.tasks:[];goals.months ||= {};goals.weeks ||= {};goals.days ||= {};if(b.introMode)saveIntroMode(b.introMode);if(!goals.annual)goals.annual={text:'',why:''};saveAll();loadGoalForm();loadReportForm();refresh();alert('バックアップを復元しました');
   }catch(e){alert('バックアップファイルを読み込めませんでした');}};
   reader.readAsText(file);
 }
 
 function initGoogle(){
-  if(!window.google || !google.accounts || !google.accounts.oauth2){setTimeout(initGoogle,300);return}
+  if(!window.google || !google.accounts || !google.accounts.oauth2){if(++googleAttempts<20)setTimeout(initGoogle,1000);else document.getElementById('googleStatus').textContent='Google認証を読み込めません。通信環境を確認して再接続してください。';return}
+  googleAttempts=0;
   tokenClient=google.accounts.oauth2.initTokenClient({
     client_id:GOOGLE_CLIENT_ID,
     scope:'https://www.googleapis.com/auth/calendar.readonly',
@@ -763,7 +846,7 @@ function initGoogle(){
   });
 }
 function connectGoogle(){
-  if(!tokenClient){document.getElementById('googleStatus').textContent='Google認証を準備中…';initGoogle();return}
+  if(!tokenClient){googleAttempts=0;document.getElementById('googleStatus').textContent='Google認証を準備中…';initGoogle();return}
   tokenClient.requestAccessToken({prompt:'consent'});
 }
 async function loadTodayCalendar(token){
@@ -771,24 +854,18 @@ async function loadTodayCalendar(token){
   st.textContent='今日の予定を取得中…';
   try{
     const now=new Date(),start=new Date(now),end=new Date(now);
-    start.setHours(0,0,0,0);end.setHours(23,59,59,999);
+    start.setHours(0,0,0,0);end.setHours(0,0,0,0);end.setDate(end.getDate()+1);
     const url='https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime&timeMin='+encodeURIComponent(start.toISOString())+'&timeMax='+encodeURIComponent(end.toISOString());
     const res=await fetch(url,{headers:{Authorization:'Bearer '+token}});
     if(!res.ok)throw new Error('HTTP '+res.status);
     const j=await res.json(),items=j.items||[];
+    let pageToken=j.nextPageToken;
+    while(pageToken){const more=await fetch(url+'&pageToken='+encodeURIComponent(pageToken),{headers:{Authorization:'Bearer '+token}});if(!more.ok)throw new Error('Calendar');const page=await more.json();items.push(...(page.items||[]));pageToken=page.nextPageToken}
+    calendarItems=items.filter(x=>x.status!=='cancelled');
     st.textContent=items.length?`Googleカレンダー接続済み・今日 ${items.length}件`:'Googleカレンダー接続済み・今日の予定はありません';
-    box.innerHTML=items.map(e=>{
-      const sd=e.start.dateTime?new Date(e.start.dateTime):null;
-      const ed=e.end.dateTime?new Date(e.end.dateTime):null;
-      const now=new Date();
-      const tm=sd?sd.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})+'〜'+(ed?ed.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):''):'終日';
-      let status='',label='';
-      if(sd&&ed&&now>=sd&&now<=ed){status=' current';label='<span class="now-label">進行中</span>'}
-      else if(ed&&now>ed){status=' past'}
-      return `<div class="event${status}"><div class="event-title">${escapeHtml(e.summary||'（予定）')}${label}</div><div class="event-time">${tm}</div></div>`;
-    }).join('');
+    renderCalendar();
   }catch(e){
-    st.textContent='予定を取得できませんでした。再接続してください。';box.innerHTML='';
+    st.textContent='予定を取得できませんでした。再接続してください。';box.innerHTML='';calendarItems=[];sessionStorage.removeItem('dekuGoogleToken');
   }
 }
 
@@ -800,6 +877,64 @@ window.addEventListener('load',()=>{
     loadTodayCalendar(token);
   }
 });
+function newId(){return window.crypto?.randomUUID?.()||'id-'+Date.now()+'-'+Math.random().toString(36).slice(2)}
+function validDay(k){if(!/^\d{4}-\d{2}-\d{2}$/.test(k||''))return false;const d=new Date(k+'T12:00:00');return !isNaN(d)&&dateKey(d)===k}
+function shiftDay(k,n){const d=new Date(k+'T12:00:00');d.setDate(d.getDate()+n);return dateKey(d)}
+function safeNum(v){const n=Number(v);return Number.isFinite(n)&&n>=0?n:0}
+function achievement(key){const s=stats(logsForDay(key)),g=goals.days[key]||{};const keys=['calls','appts','meetings','events'].filter(k=>safeNum(g[k])>0);return keys.length?keys.reduce((n,k)=>n+Math.min(1,s[k]/g[k]),0)/keys.length:null}
+function scoreFor(key){return Math.round((achievement(key)||0)*60+(logsForDay(key).length?20:0)+(learnings.some(x=>sameDay(x.t,key))?10:0)+(reports[key]?10:0))}
+function streak(test){let day=dateKey(),n=0;if(!test(day))day=shiftDay(day,-1);while(test(day)&&n<36500){n++;day=shiftDay(day,-1)}return n}
+function renderDashboard(){
+  const key=dateKey(),g=goals.days[key]||{},s=stats(logsForDay(key)),ach=achievement(key);
+  document.getElementById('scoreValue').innerHTML=scoreFor(key)+' <small>/ 100</small>';
+  document.getElementById('achievementBadge').textContent=ach===null?'目標未設定':`今日の達成率 ${Math.round(ach*100)}%`;
+  document.getElementById('streaks').innerHTML=`<span class="badge">🔥 ${streak(k=>logsForDay(k).length||learnings.some(x=>sameDay(x.t,k))||reports[k])}日連続で記録</span><span class="badge">🏆 ${streak(k=>achievement(k)===1)}日連続で目標達成</span>`;
+  document.getElementById('scoreTrend').innerHTML=Array.from({length:7},(_,i)=>{const k=shiftDay(key,i-6),v=scoreFor(k);return `<div class="trend-col"><b>${v}</b><div class="trend-track"><i class="trend-fill" style="height:${v}%"></i></div>${k.slice(5).replace('-','/')}</div>`}).join('');
+  const remaining=['calls','appts','meetings','events'].filter(k=>safeNum(g[k])>0).map(k=>`${({calls:'架電',appts:'アポ',meetings:'商談',events:'交流会'})[k]} あと${Math.max(0,g[k]-s[k])}${k==='events'?'回':'件'}`).join(' ／ ');
+  const el=document.getElementById('todayProgress');if(remaining)el.innerHTML+=`<div class="muted">${remaining}</div>`;
+  renderTasks();renderForecast();renderCalendar();
+}
+function taskHtml(t){const origin=t.learningId?'学びから':t.reportDate?'日報から':'自分で設定';return `<div class="task ${t.done?'done':''}"><div class="task-top"><div class="grow"><b class="task-title">${escapeHtml(t.title)}</b><div class="task-meta">${escapeHtml(t.date)} ／ ${escapeHtml(t.category)} ／ ${origin}${t.date<dateKey()&&!t.done?' ／ 期限を過ぎています':''}</div></div>${!t.done?`<button class="small" data-task="${escapeHtml(t.id)}">実行を記録</button>`:'<span class="badge">実行済み</span>'}</div>${!t.done?`<button class="small" data-delete-task="${escapeHtml(t.id)}">予定を削除</button>`:''}</div>`}
+function renderTasks(){
+  const visible=tasks.filter(x=>x.date<=dateKey()&&(!x.done||sameDay(x.completedAt,dateKey()))).sort((a,b)=>Number(a.done)-Number(b.done)||a.date.localeCompare(b.date));
+  document.getElementById('taskCount').textContent=`残り${visible.filter(x=>!x.done).length}件`;
+  document.getElementById('todayTasks').innerHTML=visible.length?visible.map(taskHtml).join(''):'<p class="muted">予定はまだありません。学びや日報からも予定を追加できます。</p>';
+  const future=tasks.filter(x=>x.date>dateKey()&&!x.done).sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('futureTasks').innerHTML=future.length?future.map(taskHtml).join(''):'<p class="muted">明日以降の予定はありません。</p>';
+  document.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>completeTask(b.dataset.task));
+  document.querySelectorAll('[data-delete-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.deleteTask));
+}
+function addTask(){const title=document.getElementById('taskTitle').value.trim(),date=document.getElementById('taskDate').value;if(!title||!validDay(date)){alert('やることと実行日を入力してください');return}tasks.push({id:newId(),title,date,category:document.getElementById('taskCategory').value,done:false});saveAll();document.getElementById('taskTitle').value='';refresh();toast('予定を追加しました')}
+function deleteTask(id){if(!confirm('この予定を削除しますか？ 学びログは残ります。'))return;tasks=tasks.filter(x=>x.id!==id);saveAll();refresh()}
+function completeTask(id){const t=tasks.find(x=>x.id===id);if(!t||t.done)return;openLog(t.category||'その他');pendingOrigin={taskId:t.id};document.getElementById('memo').value=t.title;document.getElementById('logOrigin').textContent='予定の実行を記録します。保存すると実行済みになります。';window.scrollTo({top:0,behavior:'smooth'})}
+function renderForecast(){
+  const now=new Date(),month=monthKey(),g=goals.months[month]||{},current=stats(logsForMonth(month)),previous=monthKey(new Date(now.getFullYear(),now.getMonth()-1,1)),past=stats(logsForMonth(previous));
+  const days=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),elapsed=now.getDate(),left=days-elapsed;
+  const labels={calls:'架電',appts:'アポ',meetings:'商談',events:'交流会'};
+  document.getElementById('forecast').innerHTML=Object.keys(labels).map(k=>{const projected=Math.round(current[k]/elapsed*days),target=safeNum(g[k]),remain=Math.max(0,target-current[k]);return `<div class="goal-line"><b>${labels[k]}</b><div class="timeline-panel"><div><small>先月</small><b>${past[k]}</b><small>${previous}</small></div><div><small>今月ここまで</small><b>${current[k]}</b><small>${elapsed}日経過</small></div><div><small>月末予測</small><b>${projected}</b><small>目標 ${target||'未設定'}</small></div></div><p class="muted">${target?(projected>=target?'現在のペースでは目標に届く見込みです。':`目標まであと${remain}件。${left?`明日から1日平均${Math.ceil(remain/left)}件が必要です。`:'今日が月末です。'}`):'月間目標を設定すると必要な行動量が分かります。'}</p></div>`}).join('');
+}
+function reportPlainText(){const key=document.getElementById('reportDate').value||dateKey(),s=stats(logsForDay(key));return `【DEKU 日報】${key}\n架電：${s.calls}件／接続：${s.connects}件／アポ：${s.appts}件\n商談：${s.meetings}件／交流会：${s.events}回\n学び：${learnings.filter(x=>sameDay(x.t,key)).length}件\nDEKU SCORE：${scoreFor(key)}／100\n\n【良かったこと】\n${document.getElementById('goodPoint').value}\n\n【反省・改善点】\n${document.getElementById('reflection').value}\n\n【明日やること】\n${document.getElementById('tomorrowAction').value}`}
+async function shareText(text){try{if(navigator.share){await navigator.share({title:'DEKU',text});return}await navigator.clipboard.writeText(text);toast('コピーしました')}catch(e){if(e.name==='AbortError')return;const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.top='0';document.body.append(area);area.select();const copied=document.execCommand('copy');area.remove();if(copied)toast('コピーしました');else{alert('コピーできませんでした。表示された文章を選択してコピーしてください。');const panel=document.createElement('pre');panel.textContent=text;panel.style.whiteSpace='pre-wrap';document.querySelector('.page.on').append(panel)}}}
+function shareDailyReport(){return shareText(reportPlainText())}
+function shareLearning(id){const x=learnings.find(x=>x.id===id);if(x)return shareText(`【DEKU 学びログ】\n${x.title}\nジャンル：${x.category}\n\n学び：${x.insight}\n次の行動：${x.action}\n${x.url||''}`)}
+function toast(message){document.querySelector('.toast')?.remove();const el=document.createElement('div');el.className='toast';el.setAttribute('role','status');el.textContent=message;document.body.append(el);setTimeout(()=>el.remove(),3000)}
+function saveIntroMode(value){if(!['always','daily','off'].includes(value))return;localStorage.setItem('dekuIntroMode',value);document.getElementById('introMode').value=value;toast('次回の起動から反映します')}
+function renderCalendar(){
+  const box=document.getElementById('calendarEvents');if(!calendarItems.length){box.innerHTML='';return}
+  box.innerHTML=calendarItems.map((e,i)=>{const sd=e.start?.dateTime?new Date(e.start.dateTime):null,ed=e.end?.dateTime?new Date(e.end.dateTime):null;const done=data.some(x=>x.calendarId===e.id);const now=new Date();const tm=sd?sd.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})+'〜'+(ed?ed.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'}):''):'終日';const cls=sd&&ed&&now>=sd&&now<=ed?' current':'';return `<div class="event${cls}"><div class="event-title">${escapeHtml(e.summary||'（予定）')}</div><div class="event-time">${tm}${e.location?' ／ '+escapeHtml(e.location):''}</div><div class="action-buttons">${done?'<span class="badge">実績に記録済み</span>':`<button class="small" onclick="calendarToLog(${i})">実績にする</button>`}</div></div>`}).join('');
+}
+function calendarToLog(index){const e=calendarItems[index];if(!e||data.some(x=>x.calendarId===e.id))return;const title=e.summary||'（予定）';const cat=/架電|電話|テレアポ/.test(title)?'架電':/商談|打ち合わせ|打合せ|面談/.test(title)?'商談':/交流会|会食/.test(title)?'交流会':'その他';openLog(cat);pendingOrigin={calendarId:e.id};document.getElementById('memo').value=title+(e.location?' ／ '+e.location:'');document.getElementById('logOrigin').textContent='カレンダーの予定から作成。実際の結果を入力して保存してください。';window.scrollTo({top:0,behavior:'smooth'})}
+function validateBackup(b){
+  const object=x=>x&&typeof x==='object'&&!Array.isArray(x);
+  if(!object(b)||!Array.isArray(b.logs)||!object(b.reports)||!object(b.goals))throw Error('形式');
+  if(b.logs.some(x=>!object(x)||!Number.isFinite(x.t)||typeof x.cat!=='string'||['c','a','connect'].some(k=>x[k]!=null&&(!Number.isFinite(Number(x[k]))||Number(x[k])<0))))throw Error('実績');
+  for(const [k,v] of Object.entries(b.reports))if(!validDay(k)||!object(v))throw Error('日報');
+  for(const name of ['months','weeks','days']){if(b.goals[name]!=null&&!object(b.goals[name]))throw Error('目標');for(const [k,v] of Object.entries(b.goals[name]||{})){if(!object(v)||!(name==='months'?/^\d{4}-\d{2}$/.test(k):validDay(k)))throw Error('目標')}}
+  if(b.learnings!=null&&(!Array.isArray(b.learnings)||b.learnings.some(x=>!object(x)||!Number.isFinite(x.id)||!Number.isFinite(x.t)||typeof x.title!=='string'||typeof x.action!=='string')))throw Error('学び');
+  if(b.tasks!=null&&(!Array.isArray(b.tasks)||b.tasks.some(x=>!object(x)||typeof x.id!=='string'||typeof x.title!=='string'||!validDay(x.date)||typeof x.done!=='boolean'||(x.done&&!Number.isFinite(x.completedAt)))))throw Error('予定');
+}
+
+document.getElementById('taskDate').value=dateKey();document.getElementById('logDate').value=dateKey();document.getElementById('learnActionDate').value=shiftDay(dateKey(),1);document.getElementById('introMode').value=localStorage.getItem('dekuIntroMode')||'always';
 toggleFields();
 loadGoalForm();
 loadReportForm();
