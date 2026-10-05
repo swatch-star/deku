@@ -280,6 +280,8 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
       <label>学び</label><textarea id="learnInsight" rows="3" placeholder="例：説明より先に、現状・理想・障壁を聞く"></textarea>
       <label>次の行動</label><textarea id="learnAction" rows="2" placeholder="例：次回商談で3つの質問を必ず聞く"></textarea>
       <label>行動のカテゴリー</label><select id="learnActionCategory"><option>その他</option><option>商談</option><option>架電</option><option>交流会</option></select><label>行動する日</label><input id="learnActionDate" type="date"><button class="save" onclick="saveLearning()">学びを保存</button>
+      <div class="sync-status" id="learningSyncStatus" role="status">学びログ：端末に保存し、シートへ自動送信します</div>
+      <button class="small" id="resendLearnings" onclick="resendAllLearnings()">過去の学び・未送信分をシートへ再送</button>
     </div>
     <div class="card" style="margin-top:12px"><div class="section" style="margin:0 0 8px"><b>学びの履歴</b><span class="badge" id="learningCount">0件</span></div><div id="learningHistory"></div></div>
   </section>
@@ -411,7 +413,64 @@ function saveAll(){
   localStorage.setItem('dekuGoals',JSON.stringify(goals));
   localStorage.setItem('dekuLearnings',JSON.stringify(learnings));
   localStorage.setItem('dekuTasks',JSON.stringify(tasks));
+  queueLearningChanges();
 }
+// シートへの送信要求と受信確認は区別する。no-corsでは反映の成否を読めない。
+let learningSheetBusy=false;
+function readLearningSync(key){
+  try{return JSON.parse(localStorage.getItem(key)||'{}')}catch(e){return {}}
+}
+function learningSheetPayload(x,deleted=false){
+  return {type:'learning',id:String(x.id),t:x.t,title:x.title||'',source:x.source||'YouTube',
+    url:x.url||'',category:x.category||'',rating:Number(x.rating)||0,insight:x.insight||'',
+    action:x.action||'',due:x.due||'',status:deleted?'削除済み':(x.status||'実行予定'),
+    completedAt:x.completedAt||'',deleted};
+}
+function queueLearningChanges(force=false){
+  const mirror=readLearningSync('dekuLearningSheetMirror');
+  const queue=readLearningSync('dekuLearningSheetQueue');
+  const current={};
+  for(const item of learnings){
+    const payload=learningSheetPayload(item),key=payload.id;
+    current[key]=payload;
+    if(force||JSON.stringify(mirror[key])!==JSON.stringify(payload))queue[key]={...payload,updatedAt:nextLearningSyncTime()};
+  }
+  for(const key of Object.keys(mirror)){
+    if(!current[key])queue[key]={...mirror[key],deleted:true,status:'削除済み',updatedAt:nextLearningSyncTime()};
+  }
+  localStorage.setItem('dekuLearningSheetMirror',JSON.stringify(current));
+  localStorage.setItem('dekuLearningSheetQueue',JSON.stringify(queue));
+  void flushLearningSheetQueue();
+}
+function nextLearningSyncTime(){
+  const next=Math.max(Date.now(),Number(localStorage.getItem('dekuLearningSheetClock')||0)+1);
+  localStorage.setItem('dekuLearningSheetClock',String(next));return next;
+}
+async function flushLearningSheetQueue(){
+  if(learningSheetBusy)return;
+  const el=document.getElementById('learningSyncStatus');
+  learningSheetBusy=true;
+  try{
+    if(navigator.onLine===false){if(el){el.textContent='端末に保存済み・通信復帰後に学びを再送します';el.className='sync-status err'}return}
+    let sent=0;
+    while(true){
+      const queue=readLearningSync('dekuLearningSheetQueue'),key=Object.keys(queue)[0];
+      if(!key)break;
+      const payload=queue[key];
+      if(el){el.textContent='端末に保存済み・学びログをシートへ送信中…';el.className='sync-status'}
+      await fetch(DEKU_SHEET_API,{method:'POST',mode:'no-cors',signal:AbortSignal.timeout(10000),
+        headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload)});
+      const latest=readLearningSync('dekuLearningSheetQueue');
+      if(JSON.stringify(latest[key])===JSON.stringify(payload))delete latest[key];
+      localStorage.setItem('dekuLearningSheetQueue',JSON.stringify(latest));sent++;
+    }
+    if(sent&&el){el.textContent='端末に保存済み・学びを送信要求済み（反映はシートで確認）';el.className='sync-status ok'}
+  }catch(e){
+    if(el){el.textContent='端末に保存済み・学びの送信に失敗。通信復帰時か再送ボタンで再試行します';el.className='sync-status err'}
+  }finally{learningSheetBusy=false}
+}
+function resendAllLearnings(){queueLearningChanges(true)}
+window.addEventListener('online',()=>{void flushLearningSheetQueue()});
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
 
 document.getElementById('date').textContent=new Intl.DateTimeFormat('ja-JP',{dateStyle:'full'}).format(new Date());
@@ -714,8 +773,13 @@ async function saveDailyReport(){
 }
 function renderReportHistory(){
   const el=document.getElementById('reportHistory');
-  const keys=Object.keys(reports).sort().reverse();
-  if(!keys.length){el.innerHTML='<span class="muted">まだ保存された日報はありません。</span>';return}
+  const today=dateKey();
+  const cutoff=shiftDay(today,-2);
+  const keys=Object.keys(reports)
+    .filter(k=>validDay(k)&&k>=cutoff&&k<=today)
+    .sort()
+    .reverse();
+  if(!keys.length){el.innerHTML='<span class="muted">直近3日の日報はありません。</span>';return}
   el.innerHTML=keys.map(k=>{
     const r=reports[k]||{};
     const s=stats(logsForDay(k));
@@ -939,6 +1003,7 @@ toggleFields();
 loadGoalForm();
 loadReportForm();
 refresh();
+queueLearningChanges();
 </script>
 </body>
 </html>
