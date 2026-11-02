@@ -315,7 +315,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
     </div>
 
     <div class="card" style="margin-top:12px">
-      <h2>週間目標</h2>
+      <h2>週間計画</h2>
       <div class="muted" id="weekLabel"></div>
       <div class="row3">
         <div><label>架電</label><input id="weekCallsTarget" type="number" min="0"></div>
@@ -323,6 +323,12 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
         <div><label>商談</label><input id="weekMeetingsTarget" type="number" min="0"></div>
       </div>
       <button class="save" onclick="saveWeekGoals()">週間目標を保存</button>
+      <hr><h3>今週やること</h3><p class="muted">期限当日にホームへ表示。期限を過ぎても、完了するまで残ります。</p>
+      <label for="weekTaskTitle">やること</label><input id="weekTaskTitle" maxlength="300" placeholder="例：提携営業の封筒を郵送する">
+      <label for="weekTaskDate">期限</label><input id="weekTaskDate" type="date">
+      <button class="secondary" onclick="addWeekTask()">＋ 今週の計画に追加</button>
+      <div id="weekTaskSummary" class="muted" aria-live="polite"></div><div id="weekTaskList"></div>
+      <details><summary>前週以前の未完了</summary><div id="weekTaskCarry"></div></details>
     </div>
 
     <div class="card" style="margin-top:12px">
@@ -343,7 +349,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
       <h2>今月</h2><div id="monthProgress"></div>
     </div>
     <div class="card" style="margin-top:12px">
-      <h2>今週</h2><div id="weekProgress"></div>
+      <h2>今週</h2><div id="weekProgress"></div><h3>今週やること</h3><div id="weekTaskReview"></div>
     </div>
     <div class="card" style="margin-top:12px">
       <h2>今日</h2><div id="dayProgress"></div>
@@ -956,21 +962,61 @@ function renderDashboard(){
   document.getElementById('scoreTrend').innerHTML=Array.from({length:7},(_,i)=>{const k=shiftDay(key,i-6),v=scoreFor(k);return `<div class="trend-col"><b>${v}</b><div class="trend-track"><i class="trend-fill" style="height:${v}%"></i></div>${k.slice(5).replace('-','/')}</div>`}).join('');
   const remaining=['calls','appts','meetings','events'].filter(k=>safeNum(g[k])>0).map(k=>`${({calls:'架電',appts:'アポ',meetings:'商談',events:'交流会'})[k]} あと${Math.max(0,g[k]-s[k])}${k==='events'?'回':'件'}`).join(' ／ ');
   const el=document.getElementById('todayProgress');if(remaining)el.innerHTML+=`<div class="muted">${remaining}</div>`;
-  renderTasks();renderForecast();renderCalendar();
+  renderTasks();renderWeeklyTasks();renderForecast();renderCalendar();
 }
-function taskHtml(t){const origin=t.learningId?'学びから':t.reportDate?'日報から':'自分で設定';return `<div class="task ${t.done?'done':''}"><div class="task-top"><div class="grow"><b class="task-title">${escapeHtml(t.title)}</b><div class="task-meta">${escapeHtml(t.date)} ／ ${escapeHtml(t.category)} ／ ${origin}${t.date<dateKey()&&!t.done?' ／ 期限を過ぎています':''}</div></div>${!t.done?`<button class="small" data-task="${escapeHtml(t.id)}">実行を記録</button>`:'<span class="badge">実行済み</span>'}</div>${!t.done?`<button class="small" data-delete-task="${escapeHtml(t.id)}">予定を削除</button>`:''}</div>`}
+function taskHtml(t){const origin=t.weekPlan?'週の計画':t.learningId?'学びから':t.reportDate?'日報から':'自分で設定';return `<div class="task ${t.done?'done':''}"><div class="task-top"><div class="grow"><b class="task-title">${escapeHtml(t.title)}</b><div class="task-meta">${escapeHtml(t.date)} ／ ${escapeHtml(t.category)} ／ ${origin}${t.date<dateKey()&&!t.done?' ／ 期限を過ぎています':''}</div></div>${t.weekPlan?`<button class="small" data-week-toggle="${escapeHtml(t.id)}">${t.done?'未完了に戻す':'✓ 完了にする'}</button>`:''}${!t.done?`<button class="small" data-task="${escapeHtml(t.id)}">実行を記録</button>`:'<span class="badge">実行済み</span>'}</div>${!t.done?`<button class="small" data-delete-task="${escapeHtml(t.id)}">予定を削除</button>`:''}</div>`}
 function renderTasks(){
   const visible=tasks.filter(x=>x.date<=dateKey()&&(!x.done||sameDay(x.completedAt,dateKey()))).sort((a,b)=>Number(a.done)-Number(b.done)||a.date.localeCompare(b.date));
   document.getElementById('taskCount').textContent=`残り${visible.filter(x=>!x.done).length}件`;
   document.getElementById('todayTasks').innerHTML=visible.length?visible.map(taskHtml).join(''):'<p class="muted">予定はまだありません。学びや日報からも予定を追加できます。</p>';
   const future=tasks.filter(x=>x.date>dateKey()&&!x.done).sort((a,b)=>a.date.localeCompare(b.date));
   document.getElementById('futureTasks').innerHTML=future.length?future.map(taskHtml).join(''):'<p class="muted">明日以降の予定はありません。</p>';
+  document.querySelectorAll('[data-week-toggle]').forEach(b=>b.onclick=()=>toggleWeekTask(b.dataset.weekToggle));
   document.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>completeTask(b.dataset.task));
   document.querySelectorAll('[data-delete-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.deleteTask));
 }
 function addTask(){const title=document.getElementById('taskTitle').value.trim(),date=document.getElementById('taskDate').value;if(!title||!validDay(date)){alert('やることと実行日を入力してください');return}tasks.push({id:newId(),title,date,category:document.getElementById('taskCategory').value,done:false});saveAll();document.getElementById('taskTitle').value='';refresh();toast('予定を追加しました')}
 function deleteTask(id){if(!confirm('この予定を削除しますか？ 学びログは残ります。'))return;tasks=tasks.filter(x=>x.id!==id);saveAll();refresh()}
 function completeTask(id){const t=tasks.find(x=>x.id===id);if(!t||t.done)return;openLog(t.category||'その他');pendingOrigin={taskId:t.id};document.getElementById('memo').value=t.title;document.getElementById('logOrigin').textContent='予定の実行を記録します。保存すると実行済みになります。';window.scrollTo({top:0,behavior:'smooth'})}
+
+function addWeekTask(){
+  const title=document.getElementById('weekTaskTitle').value.trim(),date=document.getElementById('weekTaskDate').value;
+  if(!title||!validDay(date)){alert('やることと期限を入力してください');return}
+  if(date<weekKey()||date>dateKey(endOfWeek())){alert('期限は今週の月曜〜日曜で指定してください');return}
+  tasks.push({id:newId(),title,date,category:'その他',done:false,weekPlan:weekKey()});
+  saveAll();document.getElementById('weekTaskTitle').value='';refresh();toast('今週の計画に追加しました');
+}
+function toggleWeekTask(id){
+  const t=tasks.find(x=>x.id===id&&x.weekPlan);if(!t)return;
+  t.done=!t.done;if(t.done)t.completedAt=Date.now();else delete t.completedAt;
+  saveAll();refresh();
+}
+function editWeekTask(id){
+  const t=tasks.find(x=>x.id===id&&x.weekPlan);if(!t)return;
+  const title=prompt('やることを編集',t.title);if(title===null)return;
+  const date=prompt('期限（YYYY-MM-DD）',t.date);if(date===null)return;
+  if(!title.trim()||!validDay(date)){alert('内容と正しい期限を入力してください');return}
+  t.title=title.trim();t.date=date;t.weekPlan=weekKey(new Date(date+'T12:00:00'));saveAll();refresh();
+}
+function carryWeekTask(id){
+  const t=tasks.find(x=>x.id===id&&x.weekPlan&&!x.done);if(!t)return;
+  t.carriedFrom=t.carriedFrom||t.weekPlan;t.weekPlan=weekKey();t.date=dateKey();saveAll();refresh();toast('今週へ繰り越しました。期限は編集できます');
+}
+function renderWeeklyTasks(){
+  const wk=weekKey(),items=tasks.filter(x=>x.weekPlan===wk).sort((a,b)=>Number(a.done)-Number(b.done)||a.date.localeCompare(b.date));
+  const done=items.filter(x=>x.done).length;
+  document.getElementById('weekTaskSummary').textContent=`完了 ${done} / ${items.length}件`;
+  document.getElementById('weekTaskList').innerHTML=items.length?items.map(t=>taskHtml(t)+`<button class="small" data-week-edit="${escapeHtml(t.id)}">内容・期限を編集</button>`).join(''):'<p class="muted">今週やることを追加しましょう。</p>';
+  const old=tasks.filter(x=>x.weekPlan&&x.weekPlan<wk&&!x.done).sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('weekTaskCarry').innerHTML=old.length?old.map(t=>`<div class="task"><b>${escapeHtml(t.title)}</b><p class="muted">元の期限：${escapeHtml(t.date)}</p><button class="small" data-week-carry="${escapeHtml(t.id)}">今週へ繰り越す</button><button class="small" data-delete-task="${escapeHtml(t.id)}">削除</button></div>`).join(''):'<p class="muted">繰り越し候補はありません。</p>';
+  document.getElementById('weekTaskReview').innerHTML=`<p class="muted">完了 ${done} / ${items.length}件</p>`+items.map(taskHtml).join('');
+  document.querySelectorAll('[data-week-toggle]').forEach(b=>b.onclick=()=>toggleWeekTask(b.dataset.weekToggle));
+  document.querySelectorAll('[data-week-edit]').forEach(b=>b.onclick=()=>editWeekTask(b.dataset.weekEdit));
+  document.querySelectorAll('[data-week-carry]').forEach(b=>b.onclick=()=>carryWeekTask(b.dataset.weekCarry));
+  document.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>completeTask(b.dataset.task));
+  document.querySelectorAll('[data-delete-task]').forEach(b=>b.onclick=()=>deleteTask(b.dataset.deleteTask));
+}
+
 function renderForecast(){
   const now=new Date(),month=monthKey(),g=goals.months[month]||{},current=stats(logsForMonth(month)),previous=monthKey(new Date(now.getFullYear(),now.getMonth()-1,1)),past=stats(logsForMonth(previous));
   const days=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),elapsed=now.getDate(),left=days-elapsed;
@@ -998,7 +1044,7 @@ function validateBackup(b){
   if(b.tasks!=null&&(!Array.isArray(b.tasks)||b.tasks.some(x=>!object(x)||typeof x.id!=='string'||typeof x.title!=='string'||!validDay(x.date)||typeof x.done!=='boolean'||(x.done&&!Number.isFinite(x.completedAt)))))throw Error('予定');
 }
 
-document.getElementById('taskDate').value=dateKey();document.getElementById('logDate').value=dateKey();document.getElementById('learnActionDate').value=shiftDay(dateKey(),1);document.getElementById('introMode').value=localStorage.getItem('dekuIntroMode')||'always';
+document.getElementById('weekTaskDate').value=dateKey(endOfWeek());document.getElementById('taskDate').value=dateKey();document.getElementById('logDate').value=dateKey();document.getElementById('learnActionDate').value=shiftDay(dateKey(),1);document.getElementById('introMode').value=localStorage.getItem('dekuIntroMode')||'always';
 toggleFields();
 loadGoalForm();
 loadReportForm();
