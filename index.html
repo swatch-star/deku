@@ -312,7 +312,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
         <div><label>アポ</label><input id="monthApptsTarget" type="number" min="0"></div>
         <div><label>商談</label><input id="monthMeetingsTarget" type="number" min="0"></div>
       </div>
-      <label>交流会参加</label><input id="monthEventsTarget" type="number" min="0">
+      <label>交流会参加</label><input id="monthEventsTarget" type="number" min="0"><div class="row3"><div><label>訪問</label><input id="monthVisitsTarget" type="number" min="0"></div><div><label>会食</label><input id="monthMealsTarget" type="number" min="0"></div></div>
       <button class="save" onclick="saveMonthGoals()">月間目標を保存</button>
     </div>
 
@@ -324,7 +324,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
         <div><label>アポ</label><input id="weekApptsTarget" type="number" min="0"></div>
         <div><label>商談</label><input id="weekMeetingsTarget" type="number" min="0"></div>
       </div>
-      <button class="save" onclick="saveWeekGoals()">週間目標を保存</button>
+      <div class="row3"><div><label>訪問</label><input id="weekVisitsTarget" type="number" min="0"></div><div><label>会食</label><input id="weekMealsTarget" type="number" min="0"></div><div><label>交流会</label><input id="weekEventsTarget" type="number" min="0"></div></div><button class="save" onclick="saveWeekGoals()">週間目標を保存</button>
       <hr><h3>今週やること</h3><p class="muted">期限当日にホームへ表示。期限を過ぎても、完了するまで残ります。</p>
       <label for="weekTaskTitle">やること</label><input id="weekTaskTitle" maxlength="300" placeholder="例：提携営業の封筒を郵送する">
       <label for="weekTaskDate">期限</label><input id="weekTaskDate" type="date">
@@ -341,7 +341,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
         <div><label>アポ</label><input id="dayApptsTarget" type="number" min="0"></div>
         <div><label>商談</label><input id="dayMeetingsTarget" type="number" min="0"></div>
       </div>
-      <label>交流会</label><input id="dayEventsTarget" type="number" min="0"><button class="save" onclick="saveDayGoals()">今日の目標を保存</button>
+      <label>交流会</label><input id="dayEventsTarget" type="number" min="0"><div class="row3"><div><label>訪問</label><input id="dayVisitsTarget" type="number" min="0"></div><div><label>会食</label><input id="dayMealsTarget" type="number" min="0"></div></div><button class="save" onclick="saveDayGoals()">今日の目標を保存</button>
     </div>
   </section>
 
@@ -581,7 +581,9 @@ function stats(list){
     connects:list.reduce((s,x)=>s+(+x.connect||0),0),
     appts:list.reduce((s,x)=>s+(+x.a||0),0),
     meetings:list.filter(x=>x.cat==='商談').length,
-    events:list.filter(x=>x.cat==='交流会').length
+    events:list.filter(x=>x.cat==='交流会').length,
+    visits:list.filter(x=>x.cat==='訪問').length,
+    meals:list.filter(x=>x.cat==='会食').length
   };
 }
 function logsForDay(key){return data.filter(x=>sameDay(x.t,key))}
@@ -613,10 +615,10 @@ function refresh(){
   document.getElementById('apptsLabel').textContent=`アポ / ${dg.appts||0}`;
   document.getElementById('meetingsLabel').textContent=`商談 / ${dg.meetings||0}`;
 
-  const anyDayGoal=dg.calls||dg.appts||dg.meetings||dg.events;
+  const anyDayGoal=dg.calls||dg.appts||dg.meetings||dg.events||dg.visits||dg.meals;
   document.getElementById('todayGoalBadge').textContent=anyDayGoal?'設定済み':'未設定';
   document.getElementById('todayProgress').innerHTML=anyDayGoal
-    ? progressLine('架電',ds.calls,+dg.calls||0)+progressLine('アポ',ds.appts,+dg.appts||0)+progressLine('商談',ds.meetings,+dg.meetings||0)+progressLine('交流会',ds.events,+dg.events||0,'回')
+    ? progressLine('架電',ds.calls,+dg.calls||0)+progressLine('アポ',ds.appts,+dg.appts||0)+progressLine('商談',ds.meetings,+dg.meetings||0)+progressLine('交流会',ds.events,+dg.events||0,'回')+progressLine('訪問',ds.visits,+dg.visits||0)+progressLine('会食',ds.meals,+dg.meals||0)
     : '<div class="muted">「目標」タブから今日の目標を設定できます。</div>';
 
   renderTodayHistory();
@@ -819,17 +821,24 @@ function loadGoalForm(){
   document.getElementById('monthCallsTarget').value=mg.calls||'';
   document.getElementById('monthApptsTarget').value=mg.appts||'';
   document.getElementById('monthMeetingsTarget').value=mg.meetings||'';
+  document.getElementById('monthVisitsTarget').value=mg.visits||'';
+  document.getElementById('monthMealsTarget').value=mg.meals||'';
   document.getElementById('monthEventsTarget').value=mg.events||'';
 
   const wk=weekKey(), wg=goals.weeks[wk]||{};
   document.getElementById('weekCallsTarget').value=wg.calls||'';
   document.getElementById('weekApptsTarget').value=wg.appts||'';
   document.getElementById('weekMeetingsTarget').value=wg.meetings||'';
+  document.getElementById('weekEventsTarget').value=wg.events||'';
+  document.getElementById('weekVisitsTarget').value=wg.visits||'';
+  document.getElementById('weekMealsTarget').value=wg.meals||'';
 
   const dk=dateKey(), dg=goals.days[dk]||{};
   document.getElementById('dayCallsTarget').value=dg.calls||'';
   document.getElementById('dayApptsTarget').value=dg.appts||'';
   document.getElementById('dayMeetingsTarget').value=dg.meetings||'';
+  document.getElementById('dayVisitsTarget').value=dg.visits||'';
+  document.getElementById('dayMealsTarget').value=dg.meals||'';
   document.getElementById('dayEventsTarget').value=dg.events||'';
 }
 function saveAnnualGoal(){
@@ -837,7 +846,7 @@ function saveAnnualGoal(){
   localStorage.setItem('dekuGoals',JSON.stringify(goals));refresh();alert('年間目標を保存しました');
 }
 function saveMonthGoals(){
-  if(["monthSalesTarget", "monthSalesActual", "monthCallsTarget", "monthApptsTarget", "monthMeetingsTarget", "monthEventsTarget"].some(id=>!Number.isFinite(Number(document.getElementById(id).value))||Number(document.getElementById(id).value)<0)){alert('目標は0以上の数値で入力してください');return}
+  if(["monthSalesTarget", "monthSalesActual", "monthCallsTarget", "monthApptsTarget", "monthMeetingsTarget", "monthEventsTarget"].concat(["monthVisitsTarget","monthMealsTarget"]).some(id=>!Number.isFinite(Number(document.getElementById(id).value))||Number(document.getElementById(id).value)<0)){alert('目標は0以上の数値で入力してください');return}
   const mk=document.getElementById('goalMonth').value||monthKey();
   goals.months[mk]={
     salesTarget:+document.getElementById('monthSalesTarget').value||0,
@@ -845,49 +854,44 @@ function saveMonthGoals(){
     calls:+document.getElementById('monthCallsTarget').value||0,
     appts:+document.getElementById('monthApptsTarget').value||0,
     meetings:+document.getElementById('monthMeetingsTarget').value||0,
+    visits:+document.getElementById('monthVisitsTarget').value||0,
+    meals:+document.getElementById('monthMealsTarget').value||0,
     events:+document.getElementById('monthEventsTarget').value||0
   };
   localStorage.setItem('dekuGoals',JSON.stringify(goals));refresh();alert('月間目標を保存しました');
 }
 function saveWeekGoals(){
-  if(["weekCallsTarget", "weekApptsTarget", "weekMeetingsTarget"].some(id=>!Number.isFinite(Number(document.getElementById(id).value))||Number(document.getElementById(id).value)<0)){alert('目標は0以上の数値で入力してください');return}
+  if(["weekCallsTarget", "weekApptsTarget", "weekMeetingsTarget"].concat(["weekVisitsTarget","weekMealsTarget","weekEventsTarget"]).some(id=>!Number.isFinite(Number(document.getElementById(id).value))||Number(document.getElementById(id).value)<0)){alert('目標は0以上の数値で入力してください');return}
   const wk=weekKey();
   goals.weeks[wk]={
     calls:+document.getElementById('weekCallsTarget').value||0,
     appts:+document.getElementById('weekApptsTarget').value||0,
-    meetings:+document.getElementById('weekMeetingsTarget').value||0
+    meetings:+document.getElementById('weekMeetingsTarget').value||0,
+    visits:+document.getElementById('weekVisitsTarget').value||0,
+    meals:+document.getElementById('weekMealsTarget').value||0,
+    events:+document.getElementById('weekEventsTarget').value||0
   };
   localStorage.setItem('dekuGoals',JSON.stringify(goals));refresh();alert('週間目標を保存しました');
 }
 function saveDayGoals(){
-  if(["dayCallsTarget", "dayApptsTarget", "dayMeetingsTarget", "dayEventsTarget"].some(id=>!Number.isFinite(Number(document.getElementById(id).value))||Number(document.getElementById(id).value)<0)){alert('目標は0以上の数値で入力してください');return}
+  if(["dayCallsTarget", "dayApptsTarget", "dayMeetingsTarget", "dayEventsTarget"].concat(["dayVisitsTarget","dayMealsTarget"]).some(id=>!Number.isFinite(Number(document.getElementById(id).value))||Number(document.getElementById(id).value)<0)){alert('目標は0以上の数値で入力してください');return}
   const dk=dateKey();
   goals.days[dk]={
     calls:+document.getElementById('dayCallsTarget').value||0,
     appts:+document.getElementById('dayApptsTarget').value||0,
     meetings:+document.getElementById('dayMeetingsTarget').value||0,
+    visits:+document.getElementById('dayVisitsTarget').value||0,
+    meals:+document.getElementById('dayMealsTarget').value||0,
     events:+document.getElementById('dayEventsTarget').value||0
   };
   localStorage.setItem('dekuGoals',JSON.stringify(goals));refresh();alert('今日の目標を保存しました');
 }
 function renderProgress(ms,ws,ds,mg,wg,dg){
-  const salesActual=+mg.salesActual||0,salesTarget=+mg.salesTarget||0;
-  document.getElementById('monthProgress').innerHTML=
-    progressLine('売上',salesActual,salesTarget,'万円')+
-    progressLine('架電',ms.calls,+mg.calls||0)+
-    progressLine('アポ',ms.appts,+mg.appts||0)+
-    progressLine('商談',ms.meetings,+mg.meetings||0)+
-    progressLine('交流会',ms.events,+mg.events||0);
-
-  document.getElementById('weekProgress').innerHTML=
-    progressLine('架電',ws.calls,+wg.calls||0)+
-    progressLine('アポ',ws.appts,+wg.appts||0)+
-    progressLine('商談',ws.meetings,+wg.meetings||0);
-
-  document.getElementById('dayProgress').innerHTML=
-    progressLine('架電',ds.calls,+dg.calls||0)+
-    progressLine('アポ',ds.appts,+dg.appts||0)+
-    progressLine('商談',ds.meetings,+dg.meetings||0)+progressLine('交流会',ds.events,+dg.events||0,'回');
+  const keys=[['calls','架電'],['appts','アポ'],['meetings','商談'],['visits','訪問'],['events','交流会'],['meals','会食']];
+  const lines=(actual,target)=>keys.map(([k,label])=>progressLine(label,actual[k]||0,+target[k]||0)).join('');
+  document.getElementById('monthProgress').innerHTML=progressLine('売上',+mg.salesActual||0,+mg.salesTarget||0,'万円')+lines(ms,mg);
+  document.getElementById('weekProgress').innerHTML=lines(ws,wg);
+  document.getElementById('dayProgress').innerHTML=lines(ds,dg);
 }
 
 function exportBackup(){
@@ -956,7 +960,7 @@ function newId(){return window.crypto?.randomUUID?.()||'id-'+Date.now()+'-'+Math
 function validDay(k){if(!/^\d{4}-\d{2}-\d{2}$/.test(k||''))return false;const d=new Date(k+'T12:00:00');return !isNaN(d)&&dateKey(d)===k}
 function shiftDay(k,n){const d=new Date(k+'T12:00:00');d.setDate(d.getDate()+n);return dateKey(d)}
 function safeNum(v){const n=Number(v);return Number.isFinite(n)&&n>=0?n:0}
-function achievement(key){const s=stats(logsForDay(key)),g=goals.days[key]||{};const keys=['calls','appts','meetings','events'].filter(k=>safeNum(g[k])>0);return keys.length?keys.reduce((n,k)=>n+Math.min(1,s[k]/g[k]),0)/keys.length:null}
+function achievement(key){const s=stats(logsForDay(key)),g=goals.days[key]||{};const keys=['calls','appts','meetings','events','visits','meals'].filter(k=>safeNum(g[k])>0);return keys.length?keys.reduce((n,k)=>n+Math.min(1,s[k]/g[k]),0)/keys.length:null}
 function scoreFor(key){return Math.round((achievement(key)||0)*60+(logsForDay(key).length?20:0)+(learnings.some(x=>sameDay(x.t,key))?10:0)+(reports[key]?10:0))}
 function streak(test){let day=dateKey(),n=0;if(!test(day))day=shiftDay(day,-1);while(test(day)&&n<36500){n++;day=shiftDay(day,-1)}return n}
 function renderDashboard(){
@@ -965,7 +969,7 @@ function renderDashboard(){
   document.getElementById('achievementBadge').textContent=ach===null?'目標未設定':`今日の達成率 ${Math.round(ach*100)}%`;
   document.getElementById('streaks').innerHTML=`<span class="badge">🔥 ${streak(k=>logsForDay(k).length||learnings.some(x=>sameDay(x.t,k))||reports[k])}日連続で記録</span><span class="badge">🏆 ${streak(k=>achievement(k)===1)}日連続で目標達成</span>`;
   document.getElementById('scoreTrend').innerHTML=Array.from({length:7},(_,i)=>{const k=shiftDay(key,i-6),v=scoreFor(k);return `<div class="trend-col"><b>${v}</b><div class="trend-track"><i class="trend-fill" style="height:${v}%"></i></div>${k.slice(5).replace('-','/')}</div>`}).join('');
-  const remaining=['calls','appts','meetings','events'].filter(k=>safeNum(g[k])>0).map(k=>`${({calls:'架電',appts:'アポ',meetings:'商談',events:'交流会'})[k]} あと${Math.max(0,g[k]-s[k])}${k==='events'?'回':'件'}`).join(' ／ ');
+  const remaining=['calls','appts','meetings','events','visits','meals'].filter(k=>safeNum(g[k])>0).map(k=>`${({calls:'架電',appts:'アポ',meetings:'商談',events:'交流会',visits:'訪問',meals:'会食'})[k]} あと${Math.max(0,g[k]-s[k])}${k==='events'?'回':'件'}`).join(' ／ ');
   const el=document.getElementById('todayProgress');if(remaining)el.innerHTML+=`<div class="muted">${remaining}</div>`;
   renderTasks();renderWeeklyTasks();renderForecast();renderCalendar();
 }
@@ -1025,7 +1029,7 @@ function renderWeeklyTasks(){
 function renderForecast(){
   const now=new Date(),month=monthKey(),g=goals.months[month]||{},current=stats(logsForMonth(month)),previous=monthKey(new Date(now.getFullYear(),now.getMonth()-1,1)),past=stats(logsForMonth(previous));
   const days=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),elapsed=now.getDate(),left=days-elapsed;
-  const labels={calls:'架電',appts:'アポ',meetings:'商談',events:'交流会'};
+  const labels={calls:'架電',appts:'アポ',meetings:'商談',visits:'訪問',events:'交流会',meals:'会食'};
   document.getElementById('forecast').innerHTML=Object.keys(labels).map(k=>{const projected=Math.round(current[k]/elapsed*days),target=safeNum(g[k]),remain=Math.max(0,target-current[k]);return `<div class="goal-line"><b>${labels[k]}</b><div class="timeline-panel"><div><small>先月</small><b>${past[k]}</b><small>${previous}</small></div><div><small>今月ここまで</small><b>${current[k]}</b><small>${elapsed}日経過</small></div><div><small>月末予測</small><b>${projected}</b><small>目標 ${target||'未設定'}</small></div></div><p class="muted">${target?(projected>=target?'現在のペースでは目標に届く見込みです。':`目標まであと${remain}件。${left?`明日から1日平均${Math.ceil(remain/left)}件が必要です。`:'今日が月末です。'}`):'月間目標を設定すると必要な行動量が分かります。'}</p></div>`}).join('');
 }
 function reportPlainText(){const key=document.getElementById('reportDate').value||dateKey(),s=stats(logsForDay(key));return `【DEKU 日報】${key}\n架電：${s.calls}件／接続：${s.connects}件／アポ：${s.appts}件\n商談：${s.meetings}件／交流会：${s.events}回\n学び：${learnings.filter(x=>sameDay(x.t,key)).length}件\nDEKU SCORE：${scoreFor(key)}／100\n\n【良かったこと】\n${document.getElementById('goodPoint').value}\n\n【反省・改善点】\n${document.getElementById('reflection').value}\n\n【明日やること】\n${document.getElementById('tomorrowAction').value}`}
