@@ -170,6 +170,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
 .toast{position:fixed;bottom:calc(130px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);background:#d4fff1;color:#08291e;padding:12px 18px;border-radius:12px;z-index:1100;width:max-content;max-width:90%;font-size:13px;box-shadow:0 4px 24px #0008}
 @media(min-width:900px){.app{max-width:840px}.navin{width:840px}.add{width:808px}.hero-title{font-size:28px}.kpi b{font-size:30px}}
 @media(max-width:360px){.row3{grid-template-columns:1fr}.history-head{flex-wrap:wrap}.timeline-panel>div{padding:8px}.kpi{padding:10px}.kpi b{font-size:21px}}
+.quick-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:10px 0 15px}.quick-category{min-height:64px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;background:#173f35;color:#f4fff9;border:2px solid #276c5a;border-radius:14px;font-size:14px}.quick-category span{font-size:21px;line-height:1.2}.quick-category.selected{background:#f5d547;color:#12291f;border-color:#f5d547}.recent-row{display:grid;grid-template-columns:60px 42px minmax(0,1fr);gap:8px;align-items:start;border-bottom:1px solid #28584e;padding:10px 0;font-size:13px}.recent-row small{font-size:12px;color:#b9d7cc;overflow-wrap:anywhere}.recent-row:last-child{border-bottom:0}@media(max-width:370px){.quick-category{font-size:12px}.recent-row{grid-template-columns:50px 36px minmax(0,1fr)}}
 </style>
 </head>
 <body class="intro-open">
@@ -208,7 +209,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
       <div class="kpi"><b id="meetings">0</b><span id="meetingsLabel">商談 / 0</span></div>
     </div>
 
-    <div class="card" id="scoreCard"><div class="score-head"><div><h2>DEKU SCORE</h2><div class="score-value" id="scoreValue">0 <small>/ 100</small></div></div><span class="badge" id="achievementBadge">目標未設定</span></div><div class="streaks" id="streaks"></div><div class="trend" id="scoreTrend" aria-label="過去7日間のDEKU SCORE"></div><details class="score-details"><summary>スコアの計算方法</summary>目標達成度60点（設定した項目の平均）＋行動記録20点＋学び10点＋日報保存10点。目標未設定の場合は達成度0点。各日の現在の保存データから計算します。成果や能力の評価ではなく、自分の行動を振り返る目安です。</details></div>
+    <div class="card" style="margin:12px 0"><div class="section" style="margin:0 0 10px"><b>すぐに記録</b><span class="muted">タップして入力</span></div><div class="quick-categories" id="todayQuickCategories"></div></div><div class="card" id="scoreCard"><div class="score-head"><div><h2>DEKU SCORE</h2><div class="score-value" id="scoreValue">0 <small>/ 100</small></div></div><span class="badge" id="achievementBadge">目標未設定</span></div><div class="streaks" id="streaks"></div><div class="trend" id="scoreTrend" aria-label="過去7日間のDEKU SCORE"></div><details class="score-details"><summary>スコアの計算方法</summary>目標達成度60点（設定した項目の平均）＋行動記録20点＋学び10点＋日報保存10点。目標未設定の場合は達成度0点。各日の現在の保存データから計算します。成果や能力の評価ではなく、自分の行動を振り返る目安です。</details></div>
     <div class="card" id="todayGoalCard" style="margin-top:14px">
       <div class="section" style="margin:0 0 10px"><b>今日の目標進捗</b><span class="badge" id="todayGoalBadge">未設定</span></div>
       <div id="todayProgress"></div>
@@ -221,14 +222,14 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
       <div id="calendarEvents"></div>
     </div>
 
-    <div class="card" id="todayHistory" style="margin-top:14px"></div>
+    <div class="card" id="todayHistory" style="margin-top:14px"></div><div class="card" style="margin-top:12px"><div class="section" style="margin:0 0 10px"><b>最近7日間の行動</b><span class="muted">新しい順</span></div><div id="recentActivity"></div></div>
     <button class="add" onclick="openLog('架電')">＋ 行動を記録</button>
   </section>
 
   <section id="log" class="page">
     <h1>実績入力</h1><div class="sub">終わったら数字だけ。30秒で記録。</div>
     <div class="card" style="margin-top:16px">
-      <div class="muted" id="logOrigin"></div><label>実績の日付</label><input id="logDate" type="date"><label>行動カテゴリー</label>
+      <div class="muted" id="logOrigin"></div><label>行動を選ぶ</label><div class="quick-categories" id="logQuickCategories"></div><label>実績の日付</label><input id="logDate" type="date"><label>選択中のカテゴリー</label>
       <select id="cat" onchange="toggleFields()">
         <option>架電</option><option>商談</option><option>訪問</option><option>交流会</option><option>会食</option><option>その他</option>
       </select>
@@ -244,8 +245,8 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
         <select id="result"><option>次回提案</option><option>検討</option><option>受注</option><option>見送り</option></select>
         <label>次回アクション</label><input id="next" placeholder="例：10/5に提案書送付">
       </div>
-      <label>メモ</label><textarea id="memo" rows="3" placeholder="気づき・相手の反応など"></textarea>
-      <button class="save" onclick="saveLog()">実績を保存</button>
+      <label id="memoLabel">メモ（任意）</label><textarea id="memo" rows="3" placeholder="気づき・相手の反応など"></textarea>
+      <button class="save" onclick="saveLog()">この行動を保存する</button>
       <div class="sync-status" id="sheetSyncStatus">Googleスプレッドシート連携：準備完了</div>
     </div>
   </section>
@@ -495,6 +496,9 @@ function show(id,b){
   if(b)b.classList.add('active');
   refresh();
 }
+const DEKU_CATS=[["架電","☎"],["商談","▣"],["訪問","⌂"],["交流会","◎"],["会食","♨"],["その他","＋"]];
+function renderCategoryButtons(){for(const id of ["todayQuickCategories","logQuickCategories"]){const el=document.getElementById(id);if(!el)continue;const selected=document.getElementById("cat")?.value;el.innerHTML=DEKU_CATS.map(([name,icon])=>`<button type="button" class="quick-category ${id==="logQuickCategories"&&selected===name?"selected":""}" data-cat="${name}"><span aria-hidden="true">${icon}</span><b>${name}</b></button>`).join("");el.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>id==="todayQuickCategories"?openLog(b.dataset.cat):selectLogCategory(b.dataset.cat))}}
+function selectLogCategory(cat){document.getElementById("cat").value=cat;toggleFields()}
 function openLog(cat){
   pendingOrigin=null;document.getElementById('logOrigin').textContent='';document.getElementById('logDate').value=dateKey();for(const id of ['c','a','connect'])document.getElementById(id).value=0;document.getElementById('memo').value='';document.getElementById('next').value='';
   show('log',document.querySelectorAll('nav button')[1]);
@@ -506,6 +510,8 @@ function toggleFields(){
   document.getElementById('callfields').classList.toggle('hide',document.getElementById('cat').value!=='架電');
 
   document.getElementById('meetingfields').classList.toggle('hide',!m);
+  const label=document.getElementById('memoLabel');if(label)label.textContent=({架電:'架電メモ（任意）',商談:'商談相手・内容（任意）',訪問:'訪問先・対応内容（任意）',交流会:'交流会名・出会った人（任意）',会食:'相手・話した内容（任意）',その他:'行動の内容（任意）'})[document.getElementById('cat').value]||'メモ（任意）';
+  renderCategoryButtons();
 }
 async function saveLog(){
   if(savingLog)return;
@@ -622,6 +628,8 @@ function refresh(){
     : '<div class="muted">「目標」タブから今日の目標を設定できます。</div>';
 
   renderTodayHistory();
+  renderRecentActivity();
+  renderCategoryButtons();
   renderReportSummary();
   renderReportHistory();
   renderProgress(ms,ws,ds,mg,wg,dg);
@@ -677,6 +685,7 @@ function renderLearningHistory(){
   }).join('');
 }
 
+function renderRecentActivity(){const el=document.getElementById('recentActivity');if(!el)return;const limit=Date.now()-7*86400000;const items=data.filter(x=>Number.isFinite(+x.t)&&x.t>=limit&&x.t<=Date.now()+86400000).sort((a,b)=>b.t-a.t).slice(0,12);el.innerHTML=items.length?items.map(x=>{const d=new Date(x.t).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),desc=x.cat==='架電'?'架電 '+(+x.c||0)+'件・接続 '+(+x.connect||0)+'件・アポ '+(+x.a||0)+'件':x.memo||x.result||'記録済み';return '<div class="recent-row"><b>'+escapeHtml(x.cat||'その他')+'</b><span>'+escapeHtml(d)+'</span><small>'+escapeHtml(desc)+'</small></div>'}).join(''):'<p class="muted">直近7日間の記録はありません。</p>'}
 function renderTodayHistory(){
   const el=document.getElementById('todayHistory'), list=[...logsForDay(dateKey())].reverse();
   if(!list.length){el.innerHTML='<b>今日の行動履歴</b><br><br><span class="muted">まだ記録がありません。</span>';return}
