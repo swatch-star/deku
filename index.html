@@ -346,7 +346,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
   </section>
 
   <section id="week" class="page">
-    <h1>過去・現在・未来</h1><div class="sub">積み重ねた行動から、次の一歩を決める</div><div class="card" style="margin-top:16px"><h2>今月の着地予測</h2><div id="forecast"></div><div class="muted">今月の累計 ÷ 経過した暦日数 × 月の日数。休日も含む単純なペース予測です。</div></div>
+    <h1>過去・現在・未来</h1><div class="sub">積み重ねた行動から、次の一歩を決める</div><div class="card" style="margin-top:16px"><h2>実績分析｜今月</h2><div class="muted">保存されている行動ログをもとに自動集計。記録がない項目は0として表示します。</div><div id="realAnalytics"></div><p class="muted">※アポ率はアポ数÷架電数。訪問・会食は新カテゴリの記録から集計します。</p><button class="small" onclick="location.href='./recover.html?v=3'">履歴が表示されない場合はこちら</button></div><div class="card" style="margin-top:16px"><h2>今月の着地予測</h2><div id="forecast"></div><div class="muted">今月の累計 ÷ 経過した暦日数 × 月の日数。休日も含む単純なペース予測です。</div></div>
     <div class="card" style="margin-top:16px">
       <h2>今月</h2><div id="monthProgress"></div>
     </div>
@@ -596,6 +596,7 @@ function progressLine(label,actual,target,suffix='件'){
   return `<div class="goal-line"><div class="goal-top"><b>${label}</b><span>${actual}${suffix} / ${target||0}${suffix}</span></div><div class="bar"><i style="width:${p}%"></i></div></div>`;
 }
 
+function renderRealAnalytics(){const el=document.getElementById('realAnalytics');if(!el)return;const list=logsForMonth(monthKey()),sum=stats(list),visits=list.filter(x=>x.cat==='訪問').length,meals=list.filter(x=>x.cat==='会食').length,other=list.filter(x=>x.cat==='その他').length,active=new Set(list.map(x=>dateKey(new Date(x.t)))).size;const rate=sum.calls?(sum.appts/sum.calls*100).toFixed(1):'—',connection=sum.calls?(sum.connects/sum.calls*100).toFixed(1):'—';const rows=[['架電',sum.calls+'件'],['接続',sum.connects+'件'],['アポ',sum.appts+'件'],['商談',sum.meetings+'件'],['訪問',visits+'件'],['交流会',sum.events+'件'],['会食',meals+'件'],['その他',other+'件'],['アポ率',rate==='—'?'データなし':rate+'%'],['接続率',connection==='—'?'データなし':connection+'%'],['記録した日',active+'日']];el.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0">'+rows.map(([k,v])=>'<div style="background:rgba(255,255,255,.06);border-radius:12px;padding:12px"><div class="muted">'+k+'</div><b style="font-size:22px">'+v+'</b></div>').join('')+'</div>'+(list.length?'':'<p class="muted">端末内に今月の行動ログがありません。復旧ページから記録を追加すると、ここに反映されます。</p>');}
 function refresh(){
   const ag=goals.annual||{};
   const agd=document.getElementById('annualGoalDisplay'), agw=document.getElementById('annualGoalWhy');
@@ -622,6 +623,7 @@ function refresh(){
   renderReportSummary();
   renderReportHistory();
   renderProgress(ms,ws,ds,mg,wg,dg);
+  renderRealAnalytics();
   renderLearningHistory();
   renderDashboard();
 }
