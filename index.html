@@ -173,6 +173,64 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
 .quick-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:10px 0 15px}.quick-category{min-height:64px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;background:#173f35;color:#f4fff9;border:2px solid #276c5a;border-radius:14px;font-size:14px}.quick-category span{font-size:21px;line-height:1.2}.quick-category.selected{background:#f5d547;color:#12291f;border-color:#f5d547}.recent-row{display:grid;grid-template-columns:60px 42px minmax(0,1fr);gap:8px;align-items:start;border-bottom:1px solid #28584e;padding:10px 0;font-size:13px}.recent-row small{font-size:12px;color:#b9d7cc;overflow-wrap:anywhere}.recent-row:last-child{border-bottom:0}@media(max-width:370px){.quick-category{font-size:12px}.recent-row{grid-template-columns:50px 36px minmax(0,1fr)}}
 #goals .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0}#goals .row3>div{min-width:0}#goals .row3 input{display:block;width:100%;min-width:0;box-sizing:border-box}.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi{min-width:0;padding:12px 8px}.kpi span{overflow-wrap:anywhere}
 .report-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}.report-metric{border:1px solid #286557;background:#143b32;border-radius:12px;padding:12px 8px;min-width:0;text-align:center}.report-metric span{display:block;color:#b3d7cc;font-size:12px;font-weight:700}.report-metric strong{display:block;font-size:26px;color:#fff;margin-top:4px}.report-metric small{font-size:11px;margin-left:2px;color:#b3d7cc}@media(max-width:360px){.report-metrics{gap:6px}.report-metric{padding:9px 4px}}
+
+/* DEKU Design System v1 — ivory / forest / yellow. Keep all data and behaviors unchanged. */
+:root{
+  --g:#155b46;--bg:#f7f5ed;--card:#fffefa;--txt:#17382e;
+  --mut:#65766e;--line:#d9e1d7;--ink:#173b2e;--panel:#f1f3e9;
+  --gold:#f2ce39;--shadow:0 4px 18px rgba(23,56,46,.07);
+}
+html{background:#f7f5ed}
+body{color:var(--txt);background:#f7f5ed}
+.logo{color:#154c3a;text-shadow:none}
+h1,h2,h3,.title{color:#173b2e}
+.sub,.muted,.meta,.time,.event-time,.task-meta,.score-details,.timeline-panel small{color:#64756c}
+.card,.kpi,.item,.event{
+  background:#fffefa;color:#17382e;border:1px solid #dfe5db;
+  box-shadow:0 3px 14px rgba(19,57,42,.06)
+}
+.kpi:nth-child(1),.kpi:nth-child(2),.kpi:nth-child(3),.kpi:nth-child(n+4){background:#fffefa}
+.kpi{border-top:4px solid #174d3b}
+.kpi b{color:#174d3b}.kpi span{color:#64756c}
+.hero-banner{background:linear-gradient(125deg,#123e30 0%,#1c5a44 72%,#edcc3e 72%);border:0;box-shadow:0 5px 16px rgba(19,57,42,.12)}
+.hero-banner .hero-title,.hero-banner .hero-copy,.hero-banner .hero-kicker{color:#fffdf1}
+.plus-ultra{background:#f0d34b;color:#173b2e;box-shadow:none}
+.pill{background:#f2d34e;color:#173b2e;border:1px solid #d8b936;box-shadow:none}
+label{color:#264b3c}
+input,select,textarea{background:#fffefa;color:#17382e;border:1.5px solid #bacac0;box-shadow:none}
+select option{background:#fffefa;color:#17382e}
+input::placeholder,textarea::placeholder{color:#84928a}
+input:focus,select:focus,textarea:focus{outline:2px solid #c6ac36;outline-offset:1px;border-color:#1c6048}
+.save,.add{background:#174d3b;color:#fffdf3;border:1px solid #174d3b;box-shadow:0 3px 10px rgba(23,77,59,.15)}
+.secondary,.small,.gbtn{background:#f1f3e9;color:#174d3b;border:1px solid #cbd8ce;box-shadow:none}
+.secondary:hover,.small:hover,.gbtn:hover{background:#e7ede2}
+.danger{background:#fff1ed;color:#9b392b;border:1px solid #d9a79b;box-shadow:none}
+.quick-category{background:#f4f5ed;color:#174d3b;border:1px solid #cbd8ce}
+.quick-category.selected{background:#f2d34e;color:#173b2e;border:2px solid #d7b82b}
+.badge{background:#f0f3e9;color:#174d3b;border:1px solid #d7e0d4}
+.bar{background:#e9eee6;border:0}
+.bar i{background:#1c684f}
+.score-value{color:#174d3b}.score-head small,.trend-col,.trend-col b{color:#64756c}
+.trend-track{background:#e8ede5}.trend-fill{background:linear-gradient(#e9c73b,#1c684f)}
+.timeline-panel>div,.learn-action{background:#f0f3e9;color:#17382e}
+.learn-hero{background:#174d3b;border:0;color:#fffefa;box-shadow:0 3px 14px rgba(19,57,42,.12)}
+.learn-hero b,.learn-hero span{color:#fffefa}
+.learn-link{color:#155b46}
+.event.current{border:2px solid #d9b832;box-shadow:0 0 0 2px rgba(242,211,78,.2)}
+.now-label{background:#fff3bb;color:#174d3b;border:1px solid #e5cd69}
+.report-metric{background:#f4f5ed;border:1px solid #d9e1d7}
+.report-metric span,.report-metric small{color:#64756c}
+.report-metric strong{color:#174d3b}
+.recent-row{border-color:#dce5dc}.recent-row small{color:#65766e}
+.history-row,.learn-item,.task{border-color:#d9e1d7}
+.sync-status.ok{color:#155b46}.sync-status.err{color:#9b392b}
+nav{background:#f2d34e;border-top:1px solid #d9bd42;box-shadow:0 -3px 14px rgba(19,57,42,.1)}
+nav button{background:#f2d34e;color:#173b2e;border-right:1px solid #d9bd42}
+nav button:hover,nav button:focus-visible{background:#f9e27d;color:#173b2e}
+nav button.active{background:#174d3b!important;color:#fffefa!important;box-shadow:inset 0 3px 0 #f2d34e}
+#realAnalytics>div>div{background:#f1f3e9!important;border:1px solid #dce5da;color:#17382e}
+.toast{background:#174d3b;color:#fffefa}
+
 </style>
 <style>
 /* 今日の目標：6項目を均等な3列グリッドに統一 */
