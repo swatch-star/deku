@@ -228,7 +228,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
     <div class="card" style="margin-top:16px">
       <div class="muted" id="logOrigin"></div><label>実績の日付</label><input id="logDate" type="date"><label>行動カテゴリー</label>
       <select id="cat" onchange="toggleFields()">
-        <option>架電</option><option>商談</option><option>交流会</option><option>移動</option><option>その他</option>
+        <option>架電</option><option>商談</option><option>訪問</option><option>交流会</option><option>会食</option><option>その他</option>
       </select>
       <div id="callfields">
         <div class="row">
@@ -362,6 +362,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
   <button class="active" onclick="show('today',this)">今日</button>
   <button onclick="show('log',this)">実績</button>
   <button onclick="show('report',this)">日報</button>
+  <button onclick="location.href='./journal.html'">振り返り</button>
   <button onclick="show('learn',this)">学び</button>
   <button onclick="show('goals',this)">目標</button>
   <button onclick="show('week',this)">分析</button>
