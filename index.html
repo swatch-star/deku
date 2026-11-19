@@ -92,7 +92,7 @@ button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(17,17,17,.85)}
 .small{background:#163b33;color:#eafff8}
 .add{position:fixed;bottom:72px;left:50%;transform:translateX(-50%);width:min(528px,calc(100% - 32px));background:linear-gradient(90deg,#0f9e84,#1fd3b0);color:white;padding:15px;border-radius:18px;font-size:15px;z-index:5;border:3px solid var(--ink);box-shadow:0 7px 0 #075e50}
 nav{position:fixed;bottom:0;left:0;right:0;background:#0b211d;border-top:3px solid #164c41;display:flex;justify-content:center;z-index:10;box-shadow:0 -6px 20px rgba(0,0,0,.08)}
-.navin{width:min(560px,100%);display:grid;grid-template-columns:repeat(6,1fr)}
+.navin{width:min(560px,100%);display:grid;grid-template-columns:repeat(7,1fr)}
 nav button{background:#0b211d;color:#86b7ab;padding:12px 2px;border-radius:0;font-size:10px;border:0;box-shadow:none;border-right:1px solid #164c41}
 nav button:last-child{border-right:0}
 .active{color:#04110e!important;background:#26d8b7!important}
@@ -362,6 +362,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
   <button class="active" onclick="show('today',this)">今日</button>
   <button onclick="show('log',this)">実績</button>
   <button onclick="show('report',this)">日報</button>
+  <button onclick="location.href='./journal-prototype.html'">振り返り</button>
   <button onclick="show('learn',this)">学び</button>
   <button onclick="show('goals',this)">目標</button>
   <button onclick="show('week',this)">分析</button>
