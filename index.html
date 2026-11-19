@@ -172,7 +172,13 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
 @media(max-width:360px){.row3{grid-template-columns:1fr}.history-head{flex-wrap:wrap}.timeline-panel>div{padding:8px}.kpi{padding:10px}.kpi b{font-size:21px}}
 .quick-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:10px 0 15px}.quick-category{min-height:64px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;background:#173f35;color:#f4fff9;border:2px solid #276c5a;border-radius:14px;font-size:14px}.quick-category span{font-size:21px;line-height:1.2}.quick-category.selected{background:#f5d547;color:#12291f;border-color:#f5d547}.recent-row{display:grid;grid-template-columns:60px 42px minmax(0,1fr);gap:8px;align-items:start;border-bottom:1px solid #28584e;padding:10px 0;font-size:13px}.recent-row small{font-size:12px;color:#b9d7cc;overflow-wrap:anywhere}.recent-row:last-child{border-bottom:0}@media(max-width:370px){.quick-category{font-size:12px}.recent-row{grid-template-columns:50px 36px minmax(0,1fr)}}
 </style>
-</head>
+<style>
+/* 今日の目標：6項目を均等な3列グリッドに統一 */
+#goals .card:has(#dayCallsTarget) .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#goals .card:has(#dayCallsTarget) .row3>div{min-width:0}
+#goals .card:has(#dayCallsTarget) input[type=number]{width:100%;min-width:0;max-width:100%;box-sizing:border-box}
+@media(max-width:390px){#goals .card:has(#dayCallsTarget) .row3{gap:8px}}
+</style></head>
 <body class="intro-open">
 <div id="intro" class="intro">
   <button class="intro-start" type="button" onclick="enterDeku()" aria-label="タップしてDEKUを開始">
@@ -342,7 +348,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
         <div><label>アポ</label><input id="dayApptsTarget" type="number" min="0"></div>
         <div><label>商談</label><input id="dayMeetingsTarget" type="number" min="0"></div>
       </div>
-      <label>交流会</label><input id="dayEventsTarget" type="number" min="0"><div class="row3"><div><label>訪問</label><input id="dayVisitsTarget" type="number" min="0"></div><div><label>会食</label><input id="dayMealsTarget" type="number" min="0"></div></div><button class="save" onclick="saveDayGoals()">今日の目標を保存</button>
+      <div><label>交流会</label><input id="dayEventsTarget" type="number" min="0"></div><div class="row3"><div><label>訪問</label><input id="dayVisitsTarget" type="number" min="0"></div><div><label>会食</label><input id="dayMealsTarget" type="number" min="0"></div></div><button class="save" onclick="saveDayGoals()">今日の目標を保存</button>
     </div>
   </section>
 
