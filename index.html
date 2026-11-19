@@ -172,6 +172,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
 @media(max-width:360px){.row3{grid-template-columns:1fr}.history-head{flex-wrap:wrap}.timeline-panel>div{padding:8px}.kpi{padding:10px}.kpi b{font-size:21px}}
 .quick-categories{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:10px 0 15px}.quick-category{min-height:64px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px;background:#173f35;color:#f4fff9;border:2px solid #276c5a;border-radius:14px;font-size:14px}.quick-category span{font-size:21px;line-height:1.2}.quick-category.selected{background:#f5d547;color:#12291f;border-color:#f5d547}.recent-row{display:grid;grid-template-columns:60px 42px minmax(0,1fr);gap:8px;align-items:start;border-bottom:1px solid #28584e;padding:10px 0;font-size:13px}.recent-row small{font-size:12px;color:#b9d7cc;overflow-wrap:anywhere}.recent-row:last-child{border-bottom:0}@media(max-width:370px){.quick-category{font-size:12px}.recent-row{grid-template-columns:50px 36px minmax(0,1fr)}}
 #goals .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0}#goals .row3>div{min-width:0}#goals .row3 input{display:block;width:100%;min-width:0;box-sizing:border-box}.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.kpi{min-width:0;padding:12px 8px}.kpi span{overflow-wrap:anywhere}
+.report-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:14px 0}.report-metric{border:1px solid #286557;background:#143b32;border-radius:12px;padding:12px 8px;min-width:0;text-align:center}.report-metric span{display:block;color:#b3d7cc;font-size:12px;font-weight:700}.report-metric strong{display:block;font-size:26px;color:#fff;margin-top:4px}.report-metric small{font-size:11px;margin-left:2px;color:#b3d7cc}@media(max-width:360px){.report-metrics{gap:6px}.report-metric{padding:9px 4px}}
 </style>
 <style>
 /* 今日の目標：6項目を均等な3列グリッドに統一 */
@@ -241,10 +242,7 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
         <option>架電</option><option>商談</option><option>訪問</option><option>交流会</option><option>会食</option><option>その他</option>
       </select>
       <div id="callfields">
-        <div class="row">
-          <div><label>架電数</label><input id="c" type="number" value="0" min="0"></div>
-          <div><label>接続数</label><input id="connect" type="number" value="0" min="0"></div>
-        </div>
+        <label>架電数</label><input id="c" type="number" value="0" min="0">
         <label>アポ数</label><input id="a" type="number" value="0" min="0">
       </div>
       <div id="meetingfields" class="hide">
@@ -526,7 +524,7 @@ async function saveLog(){
   const key=document.getElementById('logDate').value;
   if(!validDay(key)){alert('実績の日付を入力してください');return}
   if(pendingOrigin?.calendarId&&data.some(x=>x.calendarId===pendingOrigin.calendarId)){alert('この予定は記録済みです');return}
-  const nums=['c','a','connect'].map(id=>Number(document.getElementById(id).value));
+  const nums=['c','a'].map(id=>Number(document.getElementById(id).value));
   if(cat==='架電'&&nums.some(n=>!Number.isInteger(n)||n<0)){alert('件数は0以上の整数で入力してください');return}
   savingLog=true;
   const saveButton=document.querySelector('button[onclick="saveLog()"]');saveButton.disabled=true;
@@ -538,7 +536,7 @@ async function saveLog(){
     cat,
     c:cat==='架電'?nums[0]:0,
     a:cat==='架電'?nums[1]:0,
-    connect:cat==='架電'?nums[2]:0,
+    connect:0,
     result:document.getElementById('result').value,
     next:document.getElementById('next').value,
     memo:document.getElementById('memo').value,
@@ -579,7 +577,6 @@ async function saveLog(){
   }
 
   document.getElementById('c').value=0;
-  document.getElementById('connect').value=0;
   document.getElementById('a').value=0;
   document.getElementById('memo').value='';
   document.getElementById('next').value='';
@@ -611,7 +608,15 @@ function progressLine(label,actual,target,suffix='件'){
   return `<div class="goal-line"><div class="goal-top"><b>${label}</b><span>${actual}${suffix} / ${target||0}${suffix}</span></div><div class="bar"><i style="width:${p}%"></i></div></div>`;
 }
 
-function renderRealAnalytics(){const el=document.getElementById('realAnalytics');if(!el)return;const list=logsForMonth(monthKey()),sum=stats(list),visits=list.filter(x=>x.cat==='訪問').length,meals=list.filter(x=>x.cat==='会食').length,other=list.filter(x=>x.cat==='その他').length,active=new Set(list.map(x=>dateKey(new Date(x.t)))).size;const rate=sum.calls?(sum.appts/sum.calls*100).toFixed(1):'—',connection=sum.calls?(sum.connects/sum.calls*100).toFixed(1):'—';const rows=[['架電',sum.calls+'件'],['接続',sum.connects+'件'],['アポ',sum.appts+'件'],['商談',sum.meetings+'件'],['訪問',visits+'件'],['交流会',sum.events+'件'],['会食',meals+'件'],['その他',other+'件'],['アポ率',rate==='—'?'データなし':rate+'%'],['接続率',connection==='—'?'データなし':connection+'%'],['記録した日',active+'日']];el.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0">'+rows.map(([k,v])=>'<div style="background:rgba(255,255,255,.06);border-radius:12px;padding:12px"><div class="muted">'+k+'</div><b style="font-size:22px">'+v+'</b></div>').join('')+'</div>'+(list.length?'':'<p class="muted">端末内に今月の行動ログがありません。復旧ページから記録を追加すると、ここに反映されます。</p>');}
+function renderRealAnalytics(){
+  const el=document.getElementById('realAnalytics');if(!el)return;
+  const list=logsForMonth(monthKey()),sum=stats(list);
+  const other=list.filter(x=>x.cat==='その他').length,active=new Set(list.map(x=>dateKey(new Date(x.t)))).size;
+  const rate=sum.calls?(sum.appts/sum.calls*100).toFixed(1)+'%':'データなし';
+  const rows=[['架電',sum.calls+'件'],['アポ',sum.appts+'件'],['商談',sum.meetings+'件'],['訪問',sum.visits+'件'],['交流会',sum.events+'件'],['会食',sum.meals+'件'],['その他',other+'件'],['アポ率',rate],['記録した日',active+'日']];
+  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0">'+rows.map(([k,v])=>'<div style="background:rgba(255,255,255,.06);border-radius:12px;padding:12px"><div class="muted">'+k+'</div><b style="font-size:22px">'+v+'</b></div>').join('')+'</div>'+(list.length?'':'<p class="muted">端末内に今月の行動ログがありません。復旧ページから記録を追加すると、ここに反映されます。</p>');
+}
+
 function refresh(){
   const ag=goals.annual||{};
   const agd=document.getElementById('annualGoalDisplay'), agw=document.getElementById('annualGoalWhy');
@@ -698,7 +703,7 @@ function renderLearningHistory(){
   }).join('');
 }
 
-function renderRecentActivity(){const el=document.getElementById('recentActivity');if(!el)return;const limit=Date.now()-7*86400000;const items=data.filter(x=>Number.isFinite(+x.t)&&x.t>=limit&&x.t<=Date.now()+86400000).sort((a,b)=>b.t-a.t).slice(0,12);el.innerHTML=items.length?items.map(x=>{const d=new Date(x.t).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),desc=x.cat==='架電'?'架電 '+(+x.c||0)+'件・接続 '+(+x.connect||0)+'件・アポ '+(+x.a||0)+'件':x.memo||x.result||'記録済み';return '<div class="recent-row"><b>'+escapeHtml(x.cat||'その他')+'</b><span>'+escapeHtml(d)+'</span><small>'+escapeHtml(desc)+'</small></div>'}).join(''):'<p class="muted">直近7日間の記録はありません。</p>'}
+function renderRecentActivity(){const el=document.getElementById('recentActivity');if(!el)return;const limit=Date.now()-7*86400000;const items=data.filter(x=>Number.isFinite(+x.t)&&x.t>=limit&&x.t<=Date.now()+86400000).sort((a,b)=>b.t-a.t).slice(0,12);el.innerHTML=items.length?items.map(x=>{const d=new Date(x.t).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),desc=x.cat==='架電'?'架電 '+(+x.c||0)+'件・アポ '+(+x.a||0)+'件':x.memo||x.result||'記録済み';return '<div class="recent-row"><b>'+escapeHtml(x.cat||'その他')+'</b><span>'+escapeHtml(d)+'</span><small>'+escapeHtml(desc)+'</small></div>'}).join(''):'<p class="muted">直近7日間の記録はありません。</p>'}
 function renderTodayHistory(){
   const el=document.getElementById('todayHistory'), list=[...logsForDay(dateKey())].reverse();
   if(!list.length){el.innerHTML='<b>今日の行動履歴</b><br><br><span class="muted">まだ記録がありません。</span>';return}
@@ -706,7 +711,7 @@ function renderTodayHistory(){
     const tm=new Date(x.t).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
     const detail=x.cat==='商談'
       ? `${escapeHtml(x.result||'')} ${x.next?`／ 次回：${escapeHtml(x.next)}`:''}`
-      : x.cat==='架電'?`架電 ${x.c||0} ／ 接続 ${x.connect||0} ／ アポ ${x.a||0}`:'実行の記録';
+      : x.cat==='架電'?`架電 ${x.c||0} ／ アポ ${x.a||0}`:'実行の記録';
     return `<div class="history-row"><div class="history-head"><div><b>${escapeHtml(x.cat)}</b> <span class="muted">${tm}</span><div class="muted">${detail}</div>${x.memo?`<div class="muted">メモ：${escapeHtml(x.memo)}</div>`:''}</div><button class="danger" onclick="deleteLog(${x.t})">取消</button></div></div>`;
   }).join('');
 }
@@ -722,12 +727,15 @@ function deleteLog(t){
 function renderReportSummary(){
   const key=document.getElementById('reportDate').value||dateKey();
   const s=stats(logsForDay(key));
-  const rate=s.calls?((s.appts/s.calls)*100).toFixed(1):0;
+  const rate=s.calls?((s.appts/s.calls)*100).toFixed(1)+'%':'—';
   const lc=learnings.filter(x=>sameDay(x.t,key)).length;
   const completed=tasks.filter(x=>x.done&&sameDay(x.completedAt,key)).length;
+  const rows=[['架電',s.calls],['アポ',s.appts],['商談',s.meetings],['訪問',s.visits],['交流会',s.events],['会食',s.meals]];
   document.getElementById('reportText').innerHTML=
-    `<b>${key} のサマリー</b><br><br>架電：${s.calls}件 ／ 接続：${s.connects}件 ／ アポ：${s.appts}件<br>商談：${s.meetings}件 ／ 交流会：${s.events}件 ／ アポ率：${rate}%<br>学び：${lc}件 ／ 予定の実行：${completed}件 ／ DEKU SCORE：${scoreFor(key)}点`;
+    '<b>'+escapeHtml(key)+' の実績</b><div class="report-metrics">'+rows.map(([label,count])=>'<div class="report-metric"><span>'+label+'</span><strong>'+count+'<small>件</small></strong></div>').join('')+'</div>'+
+    '<div class="muted">アポ率：'+rate+' ／ 学び：'+lc+'件 ／ 予定の実行：'+completed+'件 ／ DEKU SCORE：'+scoreFor(key)+'点</div>';
 }
+
 function loadReportForm(){
   const key=document.getElementById('reportDate').value||dateKey();
   const r=reports[key]||{};
@@ -771,6 +779,8 @@ async function saveDailyReport(){
     appts:s.appts,
     meetings:s.meetings,
     events:s.events,
+    visits:s.visits,
+    meals:s.meals,
     good:report.good,
     reflection:report.reflection,
     tomorrow:report.tomorrow,
@@ -820,7 +830,7 @@ function renderReportHistory(){
     const s=stats(logsForDay(k));
     return `<div class="history-row">
       <div class="history-head">
-        <div><b>${k}</b><div class="muted">架電 ${s.calls} ／ アポ ${s.appts} ／ 商談 ${s.meetings}</div></div>
+        <div><b>${k}</b><div class="muted">架電 ${s.calls} ／ アポ ${s.appts} ／ 商談 ${s.meetings} ／ 訪問 ${s.visits} ／ 交流会 ${s.events} ／ 会食 ${s.meals}</div></div>
         <button class="small" onclick="openPastReport('${k}')">見る</button>
       </div>
       ${r.good?`<div class="muted">良かった：${escapeHtml(r.good)}</div>`:''}
@@ -1054,7 +1064,11 @@ function renderForecast(){
   const labels={calls:'架電',appts:'アポ',meetings:'商談',visits:'訪問',events:'交流会',meals:'会食'};
   document.getElementById('forecast').innerHTML=Object.keys(labels).map(k=>{const projected=Math.round(current[k]/elapsed*days),target=safeNum(g[k]),remain=Math.max(0,target-current[k]);return `<div class="goal-line"><b>${labels[k]}</b><div class="timeline-panel"><div><small>先月</small><b>${past[k]}</b><small>${previous}</small></div><div><small>今月ここまで</small><b>${current[k]}</b><small>${elapsed}日経過</small></div><div><small>月末予測</small><b>${projected}</b><small>目標 ${target||'未設定'}</small></div></div><p class="muted">${target?(projected>=target?'現在のペースでは目標に届く見込みです。':`目標まであと${remain}件。${left?`明日から1日平均${Math.ceil(remain/left)}件が必要です。`:'今日が月末です。'}`):'月間目標を設定すると必要な行動量が分かります。'}</p></div>`}).join('');
 }
-function reportPlainText(){const key=document.getElementById('reportDate').value||dateKey(),s=stats(logsForDay(key));return `【DEKU 日報】${key}\n架電：${s.calls}件／接続：${s.connects}件／アポ：${s.appts}件\n商談：${s.meetings}件／交流会：${s.events}回\n学び：${learnings.filter(x=>sameDay(x.t,key)).length}件\nDEKU SCORE：${scoreFor(key)}／100\n\n【良かったこと】\n${document.getElementById('goodPoint').value}\n\n【反省・改善点】\n${document.getElementById('reflection').value}\n\n【明日やること】\n${document.getElementById('tomorrowAction').value}`}
+function reportPlainText(){
+  const key=document.getElementById('reportDate').value||dateKey(),s=stats(logsForDay(key));
+  return `【DEKU 日報】${key}\n架電：${s.calls}件／アポ：${s.appts}件\n商談：${s.meetings}件／訪問：${s.visits}件\n交流会：${s.events}件／会食：${s.meals}件\n学び：${learnings.filter(x=>sameDay(x.t,key)).length}件\nDEKU SCORE：${scoreFor(key)}／100\n\n【良かったこと】\n${document.getElementById('goodPoint').value}\n\n【反省・改善点】\n${document.getElementById('reflection').value}\n\n【明日やること】\n${document.getElementById('tomorrowAction').value}`;
+}
+
 async function shareText(text){try{if(navigator.share){await navigator.share({title:'DEKU',text});return}await navigator.clipboard.writeText(text);toast('コピーしました')}catch(e){if(e.name==='AbortError')return;const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.top='0';document.body.append(area);area.select();const copied=document.execCommand('copy');area.remove();if(copied)toast('コピーしました');else{alert('コピーできませんでした。表示された文章を選択してコピーしてください。');const panel=document.createElement('pre');panel.textContent=text;panel.style.whiteSpace='pre-wrap';document.querySelector('.page.on').append(panel)}}}
 function shareDailyReport(){return shareText(reportPlainText())}
 function shareLearning(id){const x=learnings.find(x=>x.id===id);if(x)return shareText(`【DEKU 学びログ】\n${x.title}\nジャンル：${x.category}\n\n学び：${x.insight}\n次の行動：${x.action}\n${x.url||''}`)}
