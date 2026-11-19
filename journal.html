@@ -1,0 +1,33 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DEKU｜音声ジャーナル</title><style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif}*{box-sizing:border-box}body{background:#071f1b;color:#f4fff9;margin:0}main{max-width:600px;margin:auto;padding:22px 16px 80px}h1{font-size:26px;margin:12px 0}h2{font-size:18px}a{color:#72f2da}.panel{background:#0f2f29;border:1px solid #1f5a4e;border-radius:18px;padding:18px;margin:16px 0}.muted{color:#9bc9bd;font-size:13px}.accent{color:#72f2da;font-weight:800}.question{font-size:21px;line-height:1.5;font-weight:800;margin:14px 0}textarea{width:100%;min-height:145px;border-radius:12px;background:#173d34;color:white;border:1px solid #398e7b;padding:13px;font:inherit;font-size:16px}.buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}button{background:#14b89a;color:#fff;border:0;border-radius:12px;padding:12px 15px;font-size:15px;font-weight:800;cursor:pointer}button.alt{background:#21473d}button:disabled{opacity:.45}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;line-height:1.8}.entry{border-top:1px solid #1f5a4e;padding:14px 0}.entry:first-child{border:0}</style></head><body><main>
+<a href="./index.html">← DEKUに戻る</a><p class="accent">DEKU / DAILY JOURNAL</p><h1>1日の振り返り</h1><p class="muted" id="date"></p>
+<section class="panel" id="interview"><div class="accent" id="progress"></div><div class="question" id="question"></div><textarea id="answer" placeholder="今日の出来事を話してください"></textarea><div class="buttons"><button id="mic">🎙 話して回答</button><button id="next">回答する →</button><button id="speak" class="alt">🔊 質問を聞く</button></div><p class="muted" id="status">音声認識が使えない場合は、キーボードのマイクか文字入力を利用できます。</p></section>
+<section class="panel" id="result" hidden><h2>今日のジャーナル</h2><pre id="summary"></pre><div class="buttons"><button id="save">保存する</button><button id="copy" class="alt">コピー</button><button id="restart" class="alt">最初から</button></div><p class="muted">現在は端末内への保存です。AIによる自動要約・Google Sheets同期は未接続です。</p></section>
+<section class="panel"><h2>保存履歴</h2><div id="history"></div><button id="export" class="alt">履歴をバックアップ</button></section>
+</main><script>
+"use strict";
+const $=id=>document.getElementById(id);
+const stages=[
+{label:"今日の成果",q:"今日、一番うまくいったことは何ですか？",follow:"その場面で、あなたが意識していたことは何ですか？"},
+{label:"成功した理由",q:"うまくいった理由は何だと思いますか？",follow:"その工夫を次回も再現するなら、何をしますか？"},
+{label:"今日の課題",q:"今日、思うようにいかなかったことは何ですか？",follow:"一番の原因は何だったと思いますか？"},
+{label:"改善策",q:"その課題を改善するには、何を変えますか？",follow:"最初の一歩は何にしますか？"},
+{label:"明日の行動",q:"明日、具体的に何を実行しますか？",follow:"いつ実行する予定ですか？"}
+];
+let stage=0,follow=false,answers=stages.map(()=>({main:"",follow:""})),recognition=null;
+const key="dekuJournalV2",today=()=>new Date().toLocaleDateString("sv-SE",{timeZone:"Asia/Tokyo"});
+$("date").textContent=new Date().toLocaleDateString("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"long",day:"numeric",weekday:"long"});
+function render(){$("progress").textContent=(stage+1)+" / "+stages.length+(follow?" ・ 深掘り":"");$("question").textContent=follow?stages[stage].follow:stages[stage].q;$("answer").value=answers[stage][follow?"follow":"main"];$("next").textContent=follow?"次の質問 →":"回答する →";}
+function stop(){if(recognition){recognition.stop();recognition=null}$("mic").textContent="🎙 話して回答"}
+$("mic").onclick=()=>{if(recognition){stop();return}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$("status").textContent="音声認識非対応です。キーボードの音声入力をご利用ください。";return}const r=new SR;recognition=r;r.lang="ja-JP";r.continuous=true;r.interimResults=true;const initial=$("answer").value;let finalText="";r.onresult=e=>{let temp="";for(let i=0;i<e.results.length;i++){if(e.results[i].isFinal)temp+=e.results[i][0].transcript;else temp+=e.results[i][0].transcript}$("answer").value=[initial,temp].filter(Boolean).join(" ")};r.onerror=e=>$("status").textContent="音声認識エラー："+e.error;r.onend=()=>{recognition=null;$("mic").textContent="🎙 話して回答"};try{r.start();$("mic").textContent="■ 停止";$("status").textContent="話し終えたら停止し、回答内容を確認してください。"}catch(e){recognition=null;$("status").textContent="マイクを開始できませんでした"}};
+$("speak").onclick=()=>{if(!("speechSynthesis" in window))return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance($("question").textContent);u.lang="ja-JP";speechSynthesis.speak(u)};
+function buildSummary(){return stages.map((s,i)=>"【"+s.label+"】\n"+answers[i].main+(answers[i].follow?"\n・深掘り："+answers[i].follow:"")).join("\n\n")}
+$("next").onclick=()=>{const v=$("answer").value.trim();if(!v)return alert("回答を入力してください");answers[stage][follow?"follow":"main"]=v;stop();if(!follow){follow=true;render()}else if(stage<stages.length-1){stage++;follow=false;render()}else{$("summary").textContent=buildSummary();$("result").hidden=false;$("result").scrollIntoView({behavior:"smooth"})}};
+function getHistory(){try{return JSON.parse(localStorage.getItem(key)||"[]")}catch{return []}}
+function showHistory(){const box=$("history");box.replaceChildren();const entries=getHistory();if(!entries.length){box.textContent="まだ記録がありません";return}for(const item of entries.slice().reverse()){const div=document.createElement("div");div.className="entry";const b=document.createElement("strong");b.textContent=item.date;const pre=document.createElement("pre");pre.textContent=item.summary;div.append(b,pre);box.append(div)}}
+$("save").onclick=()=>{const entries=getHistory(),date=today(),item={date,answers:JSON.parse(JSON.stringify(answers)),summary:buildSummary()};const idx=entries.findIndex(e=>e.date===date);if(idx>=0){if(!confirm("今日のジャーナルを上書きしますか？"))return;entries[idx]=item}else entries.push(item);try{localStorage.setItem(key,JSON.stringify(entries));showHistory();alert("この端末に保存しました")}catch(e){alert("保存できませんでした")}};
+$("copy").onclick=async()=>{try{await navigator.clipboard.writeText(buildSummary());alert("コピーしました")}catch(e){alert("コピーできませんでした")}};
+$("restart").onclick=()=>{stage=0;follow=false;answers=stages.map(()=>({main:"",follow:""}));$("result").hidden=true;render()};
+$("export").onclick=()=>{const blob=new Blob([JSON.stringify(getHistory(),null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="deku-journal-"+today()+".json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+render();showHistory();
+</script></body></html>
