@@ -345,8 +345,8 @@ nav{padding-bottom:env(safe-area-inset-bottom)}.add{bottom:calc(66px + env(safe-
     </div>
   </section>
 
-  <section id="week" class="page">
-    <h1>過去・現在・未来</h1><div class="sub">積み重ねた行動から、次の一歩を決める</div><div class="card" style="margin-top:16px"><h2>実績分析｜今月</h2><div class="muted">保存されている行動ログをもとに自動集計。記録がない項目は0として表示します。</div><div id="realAnalytics"></div><p class="muted">※アポ率はアポ数÷架電数。訪問・会食は新カテゴリの記録から集計します。</p><button class="small" onclick="location.href='./recover.html?v=3'">履歴が表示されない場合はこちら</button></div><div class="card" style="margin-top:16px"><h2>今月の着地予測</h2><div id="forecast"></div><div class="muted">今月の累計 ÷ 経過した暦日数 × 月の日数。休日も含む単純なペース予測です。</div></div>
+  <section id="week" class="page"><div class="card" id="recoveryNotice" style="margin:12px 0;border:1px solid #f5d547"><b>過去の記録が表示されない場合</b><p class="muted">Google Sheetsに残っている履歴を専用JSONファイルから追加できます。既存データは上書きしません。</p><button class="small" onclick="location.href='./recover.html?v=5'">履歴を復旧する</button></div>
+    <h1>過去・現在・未来</h1><div class="sub">積み重ねた行動から、次の一歩を決める</div><div class="card" style="margin-top:16px"><h2>実績分析｜今月</h2><div class="muted">保存されている行動ログをもとに自動集計。記録がない項目は0として表示します。</div><div id="realAnalytics"></div><p class="muted">※アポ率はアポ数÷架電数。訪問・会食は新カテゴリの記録から集計します。</p><button class="small" onclick="location.href='./recover.html?v=5'">58件の行動ログ・44件の日報を復旧する</button></div><div class="card" style="margin-top:16px"><h2>今月の着地予測</h2><div id="forecast"></div><div class="muted">今月の累計 ÷ 経過した暦日数 × 月の日数。休日も含む単純なペース予測です。</div></div>
     <div class="card" style="margin-top:16px">
       <h2>今月</h2><div id="monthProgress"></div>
     </div>
