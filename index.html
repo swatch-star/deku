@@ -303,6 +303,7 @@ nav button.active{background:#174d3b!important;color:#fffefa!important;box-shado
         <label>架電数</label><input id="c" type="number" value="0" min="0">
         <label>アポ数</label><input id="a" type="number" value="0" min="0">
       </div>
+      <div id="quantityfields" class="hide"><label id="quantityLabel" for="actionQuantity">訪問件数</label><input id="actionQuantity" type="number" min="1" step="1" inputmode="numeric" value="1"><div class="muted">まとめて記録できます。例：5社訪問したら「5」</div></div>
       <div id="meetingfields" class="hide">
         <label>商談結果</label>
         <select id="result"><option>次回提案</option><option>検討</option><option>受注</option><option>見送り</option></select>
@@ -563,13 +564,17 @@ const DEKU_CATS=[["架電","☎"],["商談","▣"],["訪問","⌂"],["交流会"
 function renderCategoryButtons(){for(const id of ["todayQuickCategories","logQuickCategories"]){const el=document.getElementById(id);if(!el)continue;const selected=document.getElementById("cat")?.value;el.innerHTML=DEKU_CATS.map(([name,icon])=>`<button type="button" class="quick-category ${id==="logQuickCategories"&&selected===name?"selected":""}" data-cat="${name}"><span aria-hidden="true">${icon}</span><b>${name}</b></button>`).join("");el.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>id==="todayQuickCategories"?openLog(b.dataset.cat):selectLogCategory(b.dataset.cat))}}
 function selectLogCategory(cat){document.getElementById("cat").value=cat;toggleFields()}
 function openLog(cat){
-  pendingOrigin=null;document.getElementById('logOrigin').textContent='';document.getElementById('logDate').value=dateKey();for(const id of ['c','a','connect'])document.getElementById(id).value=0;document.getElementById('memo').value='';document.getElementById('next').value='';
+  pendingOrigin=null;document.getElementById('logOrigin').textContent='';document.getElementById('logDate').value=dateKey();for(const id of ['c','a'])document.getElementById(id).value=0;document.getElementById('actionQuantity').value=1;document.getElementById('memo').value='';document.getElementById('next').value='';
   show('log',document.querySelectorAll('nav button')[1]);
   document.getElementById('cat').value=cat;
   toggleFields();
 }
 function toggleFields(){
-  const m=document.getElementById('cat').value==='商談';
+  const category=document.getElementById('cat').value;
+  const m=category==='商談';
+  const showQuantity=['商談','訪問','交流会','会食'].includes(category);
+  document.getElementById('quantityfields').classList.toggle('hide',!showQuantity);
+  document.getElementById('quantityLabel').textContent=({商談:'商談件数',訪問:'訪問件数',交流会:'交流会参加回数',会食:'会食件数'})[category]||'件数';
   document.getElementById('callfields').classList.toggle('hide',document.getElementById('cat').value!=='架電');
 
   document.getElementById('meetingfields').classList.toggle('hide',!m);
@@ -584,6 +589,8 @@ async function saveLog(){
   if(pendingOrigin?.calendarId&&data.some(x=>x.calendarId===pendingOrigin.calendarId)){alert('この予定は記録済みです');return}
   const nums=['c','a'].map(id=>Number(document.getElementById(id).value));
   if(cat==='架電'&&nums.some(n=>!Number.isInteger(n)||n<0)){alert('件数は0以上の整数で入力してください');return}
+  const quantity=['商談','訪問','交流会','会食'].includes(cat)?Number(document.getElementById('actionQuantity').value):1;
+  if(!Number.isInteger(quantity)||quantity<1||quantity>9999){alert('件数は1〜9999の整数で入力してください');return}
   savingLog=true;
   const saveButton=document.querySelector('button[onclick="saveLog()"]');saveButton.disabled=true;
   try{
@@ -592,6 +599,7 @@ async function saveLog(){
     id:newId(),
     ...(pendingOrigin||{}),
     cat,
+    quantity,
     c:cat==='架電'?nums[0]:0,
     a:cat==='架電'?nums[1]:0,
     connect:0,
@@ -636,6 +644,7 @@ async function saveLog(){
 
   document.getElementById('c').value=0;
   document.getElementById('a').value=0;
+  document.getElementById('actionQuantity').value=1;
   document.getElementById('memo').value='';
   document.getElementById('next').value='';
   refresh();
@@ -648,10 +657,10 @@ function stats(list){
     calls:list.reduce((s,x)=>s+(+x.c||0),0),
     connects:list.reduce((s,x)=>s+(+x.connect||0),0),
     appts:list.reduce((s,x)=>s+(+x.a||0),0),
-    meetings:list.filter(x=>x.cat==='商談').length,
-    events:list.filter(x=>x.cat==='交流会').length,
-    visits:list.filter(x=>x.cat==='訪問').length,
-    meals:list.filter(x=>x.cat==='会食').length
+    meetings:list.filter(x=>x.cat==='商談').reduce((sum,x)=>sum+(Number.isInteger(+x.quantity)&&+x.quantity>0?+x.quantity:1),0),
+    events:list.filter(x=>x.cat==='交流会').reduce((sum,x)=>sum+(Number.isInteger(+x.quantity)&&+x.quantity>0?+x.quantity:1),0),
+    visits:list.filter(x=>x.cat==='訪問').reduce((sum,x)=>sum+(Number.isInteger(+x.quantity)&&+x.quantity>0?+x.quantity:1),0),
+    meals:list.filter(x=>x.cat==='会食').reduce((sum,x)=>sum+(Number.isInteger(+x.quantity)&&+x.quantity>0?+x.quantity:1),0)
   };
 }
 function logsForDay(key){return data.filter(x=>sameDay(x.t,key))}
@@ -769,7 +778,7 @@ function renderTodayHistory(){
     const tm=new Date(x.t).toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});
     const detail=x.cat==='商談'
       ? `${escapeHtml(x.result||'')} ${x.next?`／ 次回：${escapeHtml(x.next)}`:''}`
-      : x.cat==='架電'?`架電 ${x.c||0} ／ アポ ${x.a||0}`:'実行の記録';
+      : x.cat==='架電'?`架電 ${x.c||0} ／ アポ ${x.a||0}`:`${Number.isInteger(+x.quantity)&&+x.quantity>0?+x.quantity:1}件の記録`;
     return `<div class="history-row"><div class="history-head"><div><b>${escapeHtml(x.cat)}</b> <span class="muted">${tm}</span><div class="muted">${detail}</div>${x.memo?`<div class="muted">メモ：${escapeHtml(x.memo)}</div>`:''}</div><button class="danger" onclick="deleteLog(${x.t})">取消</button></div></div>`;
   }).join('');
 }
